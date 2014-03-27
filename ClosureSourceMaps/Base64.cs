@@ -25,7 +25,7 @@ namespace ClosureSourceMaps
         /// <summary>
         /// A map used to convert integer values in the range 0-63 to their Base64 values
         /// </summary>
-        private static const string Base64Map = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+        private const string Base64Map = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
                                                 "abcdefghijklmnopqrstuvwxyz" +
                                                 "0123456789+/";
 

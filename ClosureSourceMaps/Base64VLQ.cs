@@ -37,15 +37,15 @@ namespace ClosureSourceMaps
         private Base64Vlq() {}
 
         // A Base64 VLQ digit can represent 5 bits, so it is base-32.
-        private static const int vlqBaseShift = 5;
+        private const int vlqBaseShift = 5;
         
-        private static const int vlqBase = 1 << vlqBaseShift;
+        private const int vlqBase = 1 << vlqBaseShift;
 
         // A mask of bits for a VLQ digit (11111), 31 decimal.
-        private static const int vlqBaseMask = vlqBase - 1;
+        private  const int vlqBaseMask = vlqBase - 1;
 
         // The continuation bit is the 6th bit.
-        private static const int vlqContinuationBit = vlqBase;
+        private const int vlqContinuationBit = vlqBase;
 
         /// <summary>
         /// Converts from a two-complement value to a value where the sign bit 
@@ -101,7 +101,7 @@ namespace ClosureSourceMaps
         /// A simple interface for advancing through a sequence of characters, that
         /// communicates that advance back to the source.
         /// </summary>
-        interface ICharIterator 
+        public interface ICharIterator 
         {
             bool hasNext();
             char next();
