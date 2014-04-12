@@ -27,7 +27,7 @@ namespace ClosureSourceMaps
     /// 
     /// @author johnlenz@google.com (John Lenz)
     /// </summary>
-    public interface SourceMapConsumer : SourceMapping
+    public interface ISourceMapConsumer : ISourceMapping
     {
         /// <summary>
         /// Parses the given contents containing a source map to provide initialize

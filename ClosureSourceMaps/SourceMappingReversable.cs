@@ -29,7 +29,7 @@ namespace ClosureSourceMaps
     /// A SourceMappingReversable is a SourceMapping that can provide the reverse
     /// (source --> target) source mapping.
     /// </summary>
-    interface SourceMappingReversable : SourceMapping
+    interface ISourceMappingReversable : ISourceMapping
     {
         /// <summary>
         /// </summary>

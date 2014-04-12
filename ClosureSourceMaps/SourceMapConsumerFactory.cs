@@ -48,7 +48,7 @@ namespace ClosureSourceMaps
         /// <param name="contents">The string representing the source map file contents.</param>
         /// <param name="supplier">A supplier for any referenced maps.</param>
         /// <returns>The parsed source map.</returns>
-        public static SourceMapping Parse(string contents, SourceMapSupplier supplier)
+        public static SourceMapping Parse(string contents, ISourceMapSupplier supplier)
         {
             // Version 1, starts with a magic string
             if (contents.StartsWith("/** Begin line maps. **/")) 
