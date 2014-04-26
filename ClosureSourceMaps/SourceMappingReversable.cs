@@ -34,7 +34,7 @@ namespace ClosureSourceMaps
         /// <summary>
         /// </summary>
         /// <returns>the collection of original sources in this source mapping</returns>
-        public IEnumerable<string> GetOriginalSources();
+        IEnumerable<string> GetOriginalSources();
 
         /// <summary>
         /// Given a source file, line, and column, return the reverse mapping (source --> target).
@@ -46,6 +46,6 @@ namespace ClosureSourceMaps
         /// <param name="line">the source line</param>
         /// <param name="column">the source column</param>
         /// <returns>the reverse mapping (source --> target)</returns>
-        public IEnumerable<OriginalMapping> GetReverseMapping(string originalFile, int line, int column);
+        IEnumerable<OriginalMapping> GetReverseMapping(string originalFile, int line, int column);
     }
 }

@@ -34,6 +34,6 @@ namespace ClosureSourceMaps
         /// a class providing SourceMapping.
         /// </summary>
         /// <param name="contents"></param>
-        public void Parse(string contents);
+        void Parse(string contents);
     }
 }
