@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace ClosureSourceMaps
 {
     /// <summary>
     /// Represents a position in a source file
     /// </summary>
-    class FilePosition
+    public class FilePosition
     {
         private readonly int line;
         private readonly int column;
