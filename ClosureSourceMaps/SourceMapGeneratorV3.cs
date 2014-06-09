@@ -370,18 +370,18 @@ namespace ClosureSourceMaps
         /// </summary>
         /// <param name="output"></param>
         /// <param name="name"></param>
-        public override void AppendTo(Appendable output, string name)
+        public override void AppendTo(StringBuilder output, string name)
         {
             int maxLine = prepMappings();
 
             // Add the header fields.
-            output.append("{\n");
+            output.Append("{\n");
             appendFirstField(output, "version", "3");
             appendField(output, "file", escapeString(name));
-            appendField(output, "lineCount", String.valueOf(maxLine + 1));
+            appendField(output, "lineCount", (maxLine + 1).ToString());
 
             //optional source root
-            if (this.sourceRootPath != null && !this.sourceRootPath.isEmpty()) 
+            if (String.IsNullOrEmpty(this.sourceRootPath)) 
             {
                 appendField(output, "sourceRoot", escapeString(this.sourceRootPath));
             }
@@ -395,16 +395,16 @@ namespace ClosureSourceMaps
 
             // Files names
             appendFieldStart(output, "sources");
-            output.append("[");
+            output.Append("[");
             addSourceNameMap(output);
-            output.append("]");
+            output.Append("]");
             appendFieldEnd(output);
 
             // Files names
             appendFieldStart(output, "names");
-            output.append("[");
+            output.Append("[");
             addSymbolNameMap(output);
-            output.append("]");
+            output.Append("]");
             appendFieldEnd(output);
 
             // Extensions, only if there is any
@@ -419,7 +419,7 @@ namespace ClosureSourceMaps
                 appendField(output, key, value);
             }
 
-            output.append("\n}\n");
+            output.Append("\n}\n");
         }
 
         /// <summary>
@@ -491,7 +491,7 @@ namespace ClosureSourceMaps
         /// Writes the source name map to 'output'.
         /// </summary>
         /// <param name="output"></param>
-        private void addSourceNameMap(Appendable output)
+        private void addSourceNameMap(StringBuilder output)
         {
             addNameMap(output, sourceFileMap);
         }
@@ -500,22 +500,22 @@ namespace ClosureSourceMaps
         /// Writes the source name map to 'output'.
         /// </summary>
         /// <param name="output"></param>
-        private void addSymbolNameMap(Appendable output)
+        private void addSymbolNameMap(StringBuilder output)
         {
             addNameMap(output, originalNameMap);
         }
 
-        private void addNameMap(Appendable output, Map<String, Integer> map)
+        private void addNameMap(StringBuilder output, Dictionary<string, int> map)
         {
             int i = 0;
-            for (Entry<String, Integer> entry : map.entrySet())
+            for (Entry<string, int> entry : map.entrySet())
             {
                 string key = entry.getKey();
                 if (i != 0)
                 {
-                    output.append(",");
+                    output.Append(",");
                 }
-                output.append(escapeString(key));
+                output.Append(escapeString(key));
                 ++i;
             }
         }
@@ -532,32 +532,32 @@ namespace ClosureSourceMaps
 
         // Source map field helpers.
 
-        private static void appendFirstField(Appendable output, string name, CharSequence value)
+        private static void appendFirstField(StringBuilder output, string name, string value)
         {
-            output.append("\"");
-            output.append(name);
-            output.append("\"");
-            output.append(":");
-            output.append(value);
+            output.Append("\"");
+            output.Append(name);
+            output.Append("\"");
+            output.Append(":");
+            output.Append(value);
         }
 
-        private static void appendField(Appendable output, string name, CharSequence value)
+        private static void appendField(StringBuilder output, string name, string value)
         {
-            output.append(",\n");
-            output.append("\"");
-            output.append(name);
-            output.append("\"");
-            output.append(":");
-            output.append(value);
+            output.Append(",\n");
+            output.Append("\"");
+            output.Append(name);
+            output.Append("\"");
+            output.Append(":");
+            output.Append(value);
         }
 
-        private static void appendFieldStart(Appendable output, string name)
+        private static void appendFieldStart(StringBuilder output, string name)
         {
             appendField(output, name, "");
         }
 
         @SuppressWarnings("unused")
-        private static void appendFieldEnd(Appendable output)
+        private static void appendFieldEnd(StringBuilder output)
         {
         }
 
@@ -578,13 +578,13 @@ namespace ClosureSourceMaps
                 if (m.used)
                 {
                     m.id = id++;
-                    int endPositionLine = m.endPosition.getLine();
+                    int endPositionLine = m.endPosition.Line;
                     maxLine = Math.Max(maxLine, endPositionLine);
                 }
             }
 
             // Adjust for the prefix.
-            return maxLine + prefixPosition.getLine();
+            return maxLine + prefixPosition.Line;
         }
 
         /// <summary>
@@ -801,16 +801,16 @@ namespace ClosureSourceMaps
         /// <param name="name">The name of the generated source file that this source map
         ///  represents.</param>
         /// <param name="sections">An ordered list of map sections to include in the index.</param>
-        public override void AppendIndexMapTo(Appendable output, string name, List<SourceMapSection> sections)
+        public override void AppendIndexMapTo(StringBuilder output, string name, List<SourceMapSection> sections)
         {
             // Add the header fields.
-            output.append("{\n");
+            output.Append("{\n");
             appendFirstField(output, "version", "3");
             appendField(output, "file", escapeString(name));
 
             // Add the line character maps.
             appendFieldStart(output, "sections");
-            output.append("[\n");
+            output.Append("[\n");
             bool first = true;
             for (SourceMapSection section : sections)
             {
@@ -820,9 +820,9 @@ namespace ClosureSourceMaps
                 }
                 else
                 {
-                    output.append(",\n");
+                    output.Append(",\n");
                 }
-                output.append("{\n");
+                output.Append("{\n");
                 appendFirstField(output, "offset",
                 offsetValue(section.Line, section.Column));
                 if (section.Type == SourceMapSection.SectionType.Url)
@@ -837,23 +837,23 @@ namespace ClosureSourceMaps
                 {
                     throw new Exception("Unexpected section type");
                 }
-                output.append("\n}");
+                output.Append("\n}");
             }
 
-            output.append("\n]");
+            output.Append("\n]");
             appendFieldEnd(output);
 
-            output.append("\n}\n");
+            output.Append("\n}\n");
         }
 
-        private CharSequence offsetValue(int line, int column)
+        private string offsetValue(int line, int column)
         {
             StringBuilder output = new StringBuilder();
-            output.append("{\n");
-            appendFirstField(output, "line", String.valueOf(line));
-            appendField(output, "column", String.valueOf(column));
-            output.append("\n}");
-            return output;
+            output.Append("{\n");
+            appendFirstField(output, "line", line.ToString());
+            appendField(output, "column", column.ToString());
+            output.Append("\n}");
+            return output.ToString();
         }
 
         private int getSourceId(string sourceName)
@@ -861,7 +861,7 @@ namespace ClosureSourceMaps
             if (sourceName != lastSourceFile)
             {
                 lastSourceFile = sourceName;
-                Integer index = sourceFileMap[sourceName];
+                int index = sourceFileMap[sourceName];
                 if (index != null)
                 {
                     lastSourceFileIndex = index;
@@ -878,7 +878,7 @@ namespace ClosureSourceMaps
         private int getNameId(string symbolName) 
         {
             int originalNameIndex;
-            Integer index = originalNameMap[symbolName];
+            int index = originalNameMap[symbolName];
             if (index != null)
             {
                 originalNameIndex = index;
@@ -894,7 +894,7 @@ namespace ClosureSourceMaps
         private class LineMapper: IMappingVisitor 
         {
             // The destination.
-            private readonly Appendable output;
+            private readonly StringBuilder output;
 
             private int previousLine = -1;
             private int previousColumn = 0;
@@ -905,7 +905,7 @@ namespace ClosureSourceMaps
             private int previousSourceColumn;
             private int previousNameId;
 
-            LineMapper(Appendable output) 
+            LineMapper(StringBuilder output) 
             {
                 this.output = output;
             }
@@ -1000,7 +1000,7 @@ namespace ClosureSourceMaps
             {
                 if (firstEntry) 
                 {
-                    output.append('\"');
+                    output.Append('\"');
                 }
             }
 
@@ -1009,10 +1009,10 @@ namespace ClosureSourceMaps
             /// </summary>
             private void closeLine(bool finalEntry)
             {
-                output.append(';');
+                output.Append(';');
                 if (finalEntry) 
                 {
-                    output.append('\"');
+                    output.Append('\"');
                 }
             }
         }
