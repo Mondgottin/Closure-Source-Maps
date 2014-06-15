@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Base64Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Base64VLQTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClosureSourceMaps\ClosureSourceMaps.csproj">
