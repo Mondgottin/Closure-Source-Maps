@@ -64,7 +64,7 @@ namespace ClosureSourceMaps
         /// range outputStartPosition to outputEndPosition in the generated file.</param>
         /// <param name="outputStartPosition">The position on the starting line.</param>
         /// <param name="outputEndPosition">The position on the ending line.</param>
-        void AddMapping(string sourceName, string? symbolName, FilePosition sourceStartPosition,
+        void AddMapping(string sourceName, string symbolName, FilePosition sourceStartPosition,
                         FilePosition outputStartPosition, FilePosition outputEndPosition);
 
         /// <summary>

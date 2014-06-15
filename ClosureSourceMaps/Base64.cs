@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ClosureSourceMaps
 {
@@ -29,7 +25,7 @@ namespace ClosureSourceMaps
                                                 "abcdefghijklmnopqrstuvwxyz" +
                                                 "0123456789+/";
 
-        private static int[] Base64DecodeMap;
+        private static readonly int[] Base64DecodeMap;
 
         /// <summary>
         ///  Fill array with value
