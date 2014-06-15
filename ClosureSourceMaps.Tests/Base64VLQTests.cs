@@ -16,6 +16,42 @@ namespace ClosureSourceMaps.Tests
 			}
 		}
 
+		[TestMethod]
+		public void TestPower2EvenAndOdd()
+		{
+			int @base = 1;
+			for (int i = 0; i < 30; i++) {
+				TestEncodeDecode(@base - 1);
+				TestEncodeDecode(@base);
+				@base *= 2;
+			}
+		}
+
+		[TestMethod]
+		public void AroundZeroUpTo64Sq()
+		{
+			for (int i = -(64 * 64 - 1); i < (64 * 64 - 1); i++) {
+				TestEncodeDecode(i);
+			}
+		}
+
+		[TestMethod]
+		public void SignedPower2EvenOdd()
+		{
+			int @base = 1;
+			for (int i = 0; i < 30; i++) {
+				TestEncodeDecode(@base - 1);
+				TestEncodeDecode(@base);
+				@base *= 2;
+			}
+			@base = -1;
+			for (int i = 0; i < 30; i++) {
+				TestEncodeDecode(@base - 1);
+				TestEncodeDecode(@base);
+				@base *= 2;
+			}
+		}
+
 		private void TestEncodeDecode(int value)
 		{
 			try {
