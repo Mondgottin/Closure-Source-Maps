@@ -16,6 +16,9 @@
 
 namespace ClosureSourceMaps
 {
+    using System.Collections.Generic;
+    using System.Text;
+
     /// <summary>
     /// We encode our variable length numbers as base64 encoded strings with
     /// the least significant digit coming first.  Each base64 digit encodes
@@ -25,7 +28,7 @@ namespace ClosureSourceMaps
     ///
     /// @author johnlenz@google.com (John Lenz)
     /// </summary>
-    class Base64Vlq
+    public class Base64Vlq
     {
          // Utility class.
         private Base64Vlq() {}
@@ -76,7 +79,7 @@ namespace ClosureSourceMaps
         /// @throws IOException
         /// </summary>
         /// <param name="?"></param>
-        public static void Encode(string output, int value)
+        public static void Encode(StringBuilder output, int value)
         {
             value = toVlqSigned(value);
             do 
@@ -87,39 +90,26 @@ namespace ClosureSourceMaps
                 {
                     digit |= vlqContinuationBit;
                 }
-                output = output + Base64.ToBase64(digit);
+                output.Append(Base64.ToBase64(digit));
             } while (value > 0);
-        }
-
-        /// <summary>
-        /// A simple interface for advancing through a sequence of characters, that
-        /// communicates that advance back to the source.
-        /// </summary>
-        public interface ICharIterator 
-        {
-            bool hasNext();
-            char next();
         }
 
         /// <summary>
         /// Decodes the next VLQValue from the provided ICharIterator  
         /// </summary>
-        /// <param name="?"></param>
-        /// <returns></returns>
-        public static int Decode(ICharIterator it) 
+        public static int Decode(IEnumerable<char> chars) 
         {
             int result = 0;
-            bool continuation;
             int shift = 0;
-            do 
-            {
-                char c = it.next();
+            foreach (var c in chars) {
                 int digit = Base64.FromBase64(c);
-                continuation = (digit & vlqContinuationBit) != 0;
+                bool continuation = (digit & vlqContinuationBit) != 0;
                 digit &= vlqBaseMask;
                 result = result + (digit << shift);
                 shift = shift + vlqBaseShift;
-            } while (continuation);
+                if (!continuation)
+                    break;
+            }
             
             return fromVlqSigned(result);
         }
