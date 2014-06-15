@@ -22,7 +22,7 @@ namespace ClosureSourceMaps
     /// Interface for provide a way of mapping (line, column) positions back to
     /// positions in the original (uncompiled) source code
     /// </summary>
-    public interface SourceMapping
+    public interface ISourceMapping
     {
        /// <summary>
        /// Returns the original mapping for the line number and column position found

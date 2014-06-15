@@ -24,7 +24,7 @@ namespace ClosureSourceMaps
     /// 
     /// @author johnlenz@google.com (John Lenz)
     /// </summary>
-    public interface SourceMapSupplier
+    public interface ISourceMapSupplier
     {
         /// <summary>
         /// </summary>

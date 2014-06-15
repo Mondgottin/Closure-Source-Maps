@@ -14,64 +14,82 @@
  * limitations under the License.
  */
 
+// import java.io.IOException;
+// import java.util.List;
+// import javax.annotation.Nullable;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
 namespace ClosureSourceMaps
 {
-	using System.Collections.Generic;
-	using System.IO;
+    /// <summary>
+    /// Collects information mapping the generated (compiled) source back to
+    /// its original source for debugging purposes
+    /// 
+    /// @author johnlenz@google.com (John Lenz)
+    /// </summary>
+    interface ISourceMapGenerator
+    {
+        /// <summary>
+        /// Appends the source map to the given buffer.
+        /// </summary>
+        /// <param name="output">The stream to which the map will be appended.</param>
+        /// <param name="name">The name of the generated source file that this source map represents.</param>
+        void AppendTo(StringBuilder output, string name);
 
-	public interface ISourceMapGenerator
-	{
-		/// <summary>Appends the source map to the given buffer</summary>
-		/// <param name="output">The stream to which the map will be appended</param>
-		/// <param name="name">The name of the generated source file
-		/// that this source map represents</param>
-		void AppendTo(TextWriter output, string name);
-		/// <summary>
-		/// Appends the index source map to the given buffer
-		/// </summary>
-		/// <param name="output">The stream to which the map will be appended</param>
-		/// <param name="name">The name of the generated source file
-		/// that this source map represents</param>
-		/// <param name="sections">An ordered list of map sections to include in the index</param>
-		void AppendIndexTo(TextWriter output, string name, IEnumerable<SourceMapSection> sections);
-		/// <summary>
-		/// Resets the source map for reuse.
-		/// <para>A reset needs to be called between each generated output file.</para>
-		/// </summary>
-		void Reset();
-		/// <summary>
-		/// Adds a mapping for the given node.  Mappings must be added in order.
-		/// </summary>
-		/// <param name="sourceName">The file name to use in the generate source map
-		/// to represent this source.</param>
-		/// <param name="symbolName">The symbol name associated with this position in the
-		/// source map.</param>
-		/// <param name="sourceStart">The starting position in the original source for
-		/// represented range outputStartPosition to outputEndPosition in the
-		/// generated file.</param>
-		/// <param name="outputStart">The position on the starting line</param>
-		/// <param name="outputEnd">The position on the ending line</param>
-		void AddMapping(string sourceName, string symbolName,
-			FilePosition sourceStart, FilePosition outputStart, FilePosition outputEnd);
+        /// <summary>
+        /// Appends the index source map to the given buffer.
+        /// </summary>
+        /// <param name="output">The stream to which the map will be appended.</param>
+        /// <param name="name">The name of the generated source file that this source map represents.</param>
+        /// <param name="sections">An ordered list of map sections to include in the index.</param>
+        void AppendIndexMapTo(StringBuilder output, string name, List<SourceMapSection> sections);
 
-		/// <summary>
-		/// the prefix used for wrapping the generated source file before
-		/// it is written. This ensures that the source map is adjusted for the
-		/// change in character offsets.
-		/// </summary>
-		string WrapperPrefix { get; set; }
-		/// <summary>
-		/// generated code is being generated. This ensures that the source map
-		/// accurately reflects the fact that the source is being appended to
-		/// an existing buffer and as such, does not start at line 0, position 0
-		/// but rather some other line and position.
-		/// </summary>
-		/// <param name="offsetLine">The index of the current line being printed.</param>
-		/// <param name="offsetIndex">The column index of the current character being printed.</param>
-		void SetStartingPosition(int offsetLine, int offsetIndex);
-		/// <summary>
-		/// Whether to perform additional validation on the source map.
-		/// </summary>
-		bool Validate { get; set; }
-	}
+        /// <summary>
+        /// Resets the source map for reuse. A reset needs to be called between
+        /// each generated output file.
+        /// </summary>
+        void Reset();
+
+        /// <summary>
+        /// Adds a mapping for the given node. Mappings must be added in order.
+        /// </summary>
+        /// <param name="sourceName">The file name to use in the generate source map to represent this source.</param>
+        /// <param name="symbolName">The symbol name associated with this position in the source map.</param>
+        /// <param name="sourceStartPosition">The starting position in the original source for represented 
+        /// range outputStartPosition to outputEndPosition in the generated file.</param>
+        /// <param name="outputStartPosition">The position on the starting line.</param>
+        /// <param name="outputEndPosition">The position on the ending line.</param>
+        void AddMapping(string sourceName, string? symbolName, FilePosition sourceStartPosition,
+                        FilePosition outputStartPosition, FilePosition outputEndPosition);
+
+        /// <summary>
+        /// Sets the prefix used for wrapping the generated source file before
+        /// it is written. This ensures that the source map is adjusted for the
+        /// change in character offsets.
+        /// </summary>
+        /// <param name="prefix">The prefix that is added before the generated source code.</param>
+        void SetWrapperPrefix(string prefix);
+
+        /// <summary>
+        /// Sets the source code that exists in the buffer for which the
+        /// generated code is being generated. This ensures that the source map
+        /// accurately reflects the fact that the source is being appended to
+        /// an existing buffer and as such, does not start at line 0, position 0
+        /// but rather some other line and position.
+        /// </summary>
+        /// <param name="offsetLine">The index of the current line being printed.</param>
+        /// <param name="offsetIndex">The column index of the current character being printed.</param>
+        void SetStartingPosition(int offsetLine, int offsetIndex);
+
+        /// <summary>
+        /// Whether to perform additional validation on the source map.
+        /// </summary>
+        /// <param name="validate"></param>
+        void Validate(bool validate);
+    }   
 }
