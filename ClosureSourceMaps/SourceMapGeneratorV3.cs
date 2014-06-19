@@ -899,7 +899,7 @@ namespace ClosureSourceMaps
             return originalNameIndex;
         }
 
-        private class LineMapper : IMappingVisitor  
+        private class LineMapper: IMappingVisitor 
         {
             // The destination.
             private readonly StringBuilder output;
@@ -960,8 +960,8 @@ namespace ClosureSourceMaps
             /// </summary>
             void writeEntry(Mapping m, int column)
             {
-                // The relative generated column number
                 SourceMapGeneratorV3 sourceMapGeneratorV3 = new SourceMapGeneratorV3();
+                // The relative generated column number
                 Base64Vlq.Encode(output.ToString(), column - previousColumn);
                 previousColumn = column;
                 if (m != null) 
