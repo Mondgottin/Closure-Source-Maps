@@ -33,21 +33,31 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <!-- A reference to the entire .NET Framework is automatically included -->
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Base64.cs" />
     <Compile Include="Base64Vlq.cs" />
     <Compile Include="FilePosition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SourceMapConsumer.cs" />
     <Compile Include="SourceMapConsumerFactory.cs" />
+    <Compile Include="ISourceMapGenerator.cs" />
+    <Compile Include="SourceMapConsumerV3.cs" />
+    <Compile Include="SourceMapGeneratorFactory.cs" />
+    <Compile Include="SourceMapGeneratorV3.cs" />
     <Compile Include="SourceMapLineDecoder.cs" />
     <Compile Include="SourceMapParseException.cs" />
     <Compile Include="SourceMapping.cs" />
     <Compile Include="SourceMappingReversable.cs" />
     <Compile Include="SourceMapSection.cs" />
     <Compile Include="SourceMapSupplier.cs" />
+    <Compile Include="Util.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.3\lib\portable-net45+wp80+win8+wpa81\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
