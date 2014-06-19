@@ -48,6 +48,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ClosureSourceMaps
 {
@@ -414,12 +415,19 @@ namespace ClosureSourceMaps
                 StringBuilder value = new StringBuilder(objValue.ToString());
                 if (objValue is string)
                 {
-                    value = JsonObject.quote(value);
+                    value = quote(value);
                 }
                 appendField(output, key, value.ToString());
             }
 
             output.Append("\n}\n");
+        }
+
+        private StringBuilder quote(StringBuilder str)
+        {
+            str.Insert(0, "\"");
+            str.Append("\"");
+            return str;
         }
 
         /// <summary>
@@ -891,7 +899,7 @@ namespace ClosureSourceMaps
             return originalNameIndex;
         }
 
-        private class LineMapper: IMappingVisitor 
+        private class LineMapper : IMappingVisitor  
         {
             // The destination.
             private readonly StringBuilder output;
@@ -953,12 +961,13 @@ namespace ClosureSourceMaps
             void writeEntry(Mapping m, int column)
             {
                 // The relative generated column number
+                SourceMapGeneratorV3 sourceMapGeneratorV3 = new SourceMapGeneratorV3();
                 Base64Vlq.Encode(output.ToString(), column - previousColumn);
                 previousColumn = column;
                 if (m != null) 
                 {
                     // The relative source file id
-                    int sourceId = getSourceId(m.SourceFile);
+                    int sourceId = sourceMapGeneratorV3.getSourceId(m.SourceFile);
                     Base64Vlq.Encode(output.ToString(), sourceId - previousSourceFileId);
                     previousSourceFileId = sourceId;
 
@@ -974,7 +983,7 @@ namespace ClosureSourceMaps
                     if (m.OriginalName != null) 
                     {
                         // The relative id for the associated symbol name
-                        int nameId = getNameId(m.OriginalName);
+                        int nameId = sourceMapGeneratorV3.getNameId(m.OriginalName);
                         Base64Vlq.Encode(output.ToString(), (nameId - previousNameId));
                         previousNameId = nameId;
                     }
