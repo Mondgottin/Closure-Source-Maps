@@ -15,10 +15,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ClosureSourceMaps
 {
@@ -32,7 +28,7 @@ namespace ClosureSourceMaps
         private readonly int line;
         private readonly int column;
         private readonly SectionType type;
-        public static enum SectionType
+        public enum SectionType
         {
             Url,
             Map

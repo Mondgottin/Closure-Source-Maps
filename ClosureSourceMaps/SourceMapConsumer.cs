@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace ClosureSourceMaps
 {
     /// <summary>
@@ -34,6 +28,6 @@ namespace ClosureSourceMaps
         /// a class providing SourceMapping.
         /// </summary>
         /// <param name="contents"></param>
-        public void Parse(string contents);
+        void Parse(string contents);
     }
 }
