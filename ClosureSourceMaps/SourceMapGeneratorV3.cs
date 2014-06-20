@@ -962,29 +962,29 @@ namespace ClosureSourceMaps
             {
                 SourceMapGeneratorV3 sourceMapGeneratorV3 = new SourceMapGeneratorV3();
                 // The relative generated column number
-                Base64Vlq.Encode(output.ToString(), column - previousColumn);
+                Base64Vlq.Encode(output, column - previousColumn);
                 previousColumn = column;
                 if (m != null) 
                 {
                     // The relative source file id
                     int sourceId = sourceMapGeneratorV3.getSourceId(m.SourceFile);
-                    Base64Vlq.Encode(output.ToString(), sourceId - previousSourceFileId);
+                    Base64Vlq.Encode(output, sourceId - previousSourceFileId);
                     previousSourceFileId = sourceId;
 
                     // The relative source file line and column
                     int srcline = m.OriginalPosition.Line;
                     int srcColumn = m.OriginalPosition.Column;
-                    Base64Vlq.Encode(output.ToString(), srcline - previousSourceLine);
+                    Base64Vlq.Encode(output, srcline - previousSourceLine);
                     previousSourceLine = srcline;
 
-                    Base64Vlq.Encode(output.ToString(), srcColumn - previousSourceColumn);
+                    Base64Vlq.Encode(output, srcColumn - previousSourceColumn);
                     previousSourceColumn = srcColumn;
 
                     if (m.OriginalName != null) 
                     {
                         // The relative id for the associated symbol name
                         int nameId = sourceMapGeneratorV3.getNameId(m.OriginalName);
-                        Base64Vlq.Encode(output.ToString(), (nameId - previousNameId));
+                        Base64Vlq.Encode(output, (nameId - previousNameId));
                         previousNameId = nameId;
                     }
                 }
