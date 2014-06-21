@@ -62,7 +62,7 @@ namespace ClosureSourceMaps
 
         public SourceMapConsumerV3() {}
 
-        static class DefaultSourceMapSupplier: ISourceMapSupplier
+        class DefaultSourceMapSupplier: ISourceMapSupplier
         {
             public string GetSourceMap(string url)
             {
@@ -155,7 +155,7 @@ namespace ClosureSourceMaps
                     sourceRoot = sourceMapRoot["sourceRoot"].ToString();
                 }
 
-                for (object objkey : Lists.newArrayList(sourceMapRoot.keys())) 
+                foreach (object objkey in Lists.newArrayList(sourceMapRoot.keys())) 
                 {
                     string key = (string) objkey;
                     if (key.StartsWith("x_"))
@@ -178,7 +178,7 @@ namespace ClosureSourceMaps
         /// </summary>
         /// <param name="sourceMapRoot"></param>
         /// <param name="sectionSupplier"></param>
-        private void parseMetaMap(JSONObject sourceMapRoot, SourceMapSupplier sectionSupplier)
+        private void parseMetaMap(JObject sourceMapRoot, SourceMapSupplier sectionSupplier)
         {
             if (sectionSupplier == null) 
             {
@@ -195,7 +195,7 @@ namespace ClosureSourceMaps
                 }
 
                 String file = sourceMapRoot.getString("file");
-                if (file.isEmpty())
+                if (String.IsNullOrEmpty(file))
                 {
                     throw new SourceMapParseException("File entry is missing or empty");
                 }
@@ -242,7 +242,7 @@ namespace ClosureSourceMaps
                 StringBuilder sb = new StringBuilder();
                 try 
                 {
-                    generator.appendTo(sb, file);
+                    generator.AppendTo(sb, file);
                 } 
                 catch (IOException e) 
                 {
@@ -250,7 +250,7 @@ namespace ClosureSourceMaps
                     throw new RuntimeException(e);
                 }
 
-                parse(sb.toString());
+                parse(sb.ToString());
             }
             catch (IOException ex) 
             {
@@ -273,8 +273,8 @@ namespace ClosureSourceMaps
                 return null;
             }
 
-            Preconditions.checkState(lineNumber >= 0);
-            Preconditions.checkState(column >= 0);
+            Preconditions.CheckState(lineNumber >= 0);
+            Preconditions.CheckState(column >= 0);
 
 
             // If the line is empty return the previous mapping.
@@ -283,16 +283,16 @@ namespace ClosureSourceMaps
                 return getPreviousMapping(lineNumber);
             }
 
-            ArrayList<Entry> entries = lines.get(lineNumber);
+            List<Entry> entries = lines.get(lineNumber);
             // No empty lists.
-            Preconditions.checkState(entries.size() > 0);
+            Preconditions.CheckState(entries.size() > 0);
             if (entries.get(0).getGeneratedColumn() > column) 
             {
                 return getPreviousMapping(lineNumber);
             }
 
             int index = search(entries, column, 0, entries.size() - 1);
-            Preconditions.checkState(index >= 0, "unexpected:%s", index);
+            Preconditions.CheckState(index >= 0, "unexpected:%s", index);
             return getOriginalMappingForEntry(entries.get(index));
         }
 
@@ -344,7 +344,7 @@ namespace ClosureSourceMaps
         /// in a Map object.
         /// </summary>
         /// <returns>The extension list.</returns>
-        public Map<String, Object> getExtensions()
+        public Dictionary<string, object> getExtensions()
         {
             return this.extensions;
         }
@@ -372,15 +372,15 @@ namespace ClosureSourceMaps
             private int previousSrcColumn = 0;
             private int previousNameId = 0;
 
-            MappingBuilder(String lineMap) 
+            public MappingBuilder(String lineMap) 
             {
                 this.content = new StringCharIterator(lineMap);
             }
 
-            void build() 
+            public void build() 
             {
                 int [] temp = new int[MAX_ENTRY_VALUES];
-                ArrayList<Entry> entries = new ArrayList<Entry>();
+                List<Entry> entries = new List<Entry>();
                 while (content.hasNext()) 
                 {
                     // ';' denotes a new line.
@@ -388,8 +388,8 @@ namespace ClosureSourceMaps
                     {
                         // The line is complete, store the result for the line,
                         // null if the line is empty.
-                        ArrayList<Entry> result;
-                        if (entries.size() > 0) 
+                        List<Entry> result;
+                        if (entries.Count > 0) 
                         {
                             result = entries;
                             // A new array list for the next line.
@@ -430,10 +430,10 @@ namespace ClosureSourceMaps
             /// <param name="entry"></param>
             private void validateEntry(Entry entry) 
             {
-                Preconditions.checkState((lineCount < 0) || (line < lineCount));
-                Preconditions.checkState(entry.getSourceFileId() == UNMAPPED
+                Preconditions.CheckState((lineCount < 0) || (line < lineCount));
+                Preconditions.CheckState(entry.getSourceFileId() == Unmapped
                                       || entry.getSourceFileId() < sources.length);
-                Preconditions.checkState(entry.getNameId() == UNMAPPED
+                Preconditions.CheckState(entry.getNameId() == Unmapped
                                       || entry.getNameId() < names.length);
             }
 
@@ -534,7 +534,7 @@ namespace ClosureSourceMaps
    * Perform a binary search on the array to find a section that covers
    * the target column.
    */
-        private int search(ArrayList<Entry> entries, int target, int start, int end) 
+        private int search(List<Entry> entries, int target, int start, int end) 
         {
             while (true) 
             {
@@ -568,7 +568,7 @@ namespace ClosureSourceMaps
   /**
    * Compare an array entry's column value to the target column value.
    */
-        private int compareEntry(ArrayList<Entry> entries, int entry, int target) 
+        private int compareEntry(List<Entry> entries, int entry, int target) 
         {
             return entries.get(entry).getGeneratedColumn() - target;
         }
@@ -588,8 +588,8 @@ namespace ClosureSourceMaps
                 lineNumber--;
             } 
             while (lines.get(lineNumber) == null);
-            ArrayList<Entry> entries = lines.get(lineNumber);
-            return getOriginalMappingForEntry(entries.get(entries.size() - 1));
+            List<Entry> entries = lines.get(lineNumber);
+            return getOriginalMappingForEntry(entries.get(entries.Count - 1));
         }
 
   /**
@@ -608,7 +608,7 @@ namespace ClosureSourceMaps
                 .setOriginalFile(sources[entry.getSourceFileId()])
                 .setLineNumber(entry.getSourceLine() + 1)
                 .setColumnPosition(entry.getSourceColumn() + 1);
-                if (entry.getNameId() != UNMAPPED) 
+                if (entry.getNameId() != Unmapped) 
                 {
                     x.setIdentifier(names[entry.getNameId()]);
                 }
@@ -626,20 +626,20 @@ namespace ClosureSourceMaps
             reverseSourceMapping =
                 new HashMap<String, Map<Integer, Collection<OriginalMapping>>>();
 
-            for (int targetLine = 0; targetLine < lines.size(); targetLine++) 
+            for (int targetLine = 0; targetLine < lines.Count; ++targetLine) 
             {
-                ArrayList<Entry> entries = lines.get(targetLine);
+                List<Entry> entries = lines(targetLine);
 
                 if (entries != null) 
                 {
-                    for (Entry entry : entries) 
+                    foreach (Entry entry in entries) 
                     {
-                        if (entry.getSourceFileId() != UNMAPPED
-                            && entry.getSourceLine() != UNMAPPED) 
+                        if (entry.getSourceFileId() != Unmapped
+                            && entry.getSourceLine() != Unmapped) 
                         {
                             String originalFile = sources[entry.getSourceFileId()];
 
-                            if (!reverseSourceMapping.containsKey(originalFile)) 
+                            if (!reverseSourceMapping.ContainsKey(originalFile)) 
                             {
                                 reverseSourceMapping.put(originalFile,
                                 new HashMap<Integer, Collection<OriginalMapping>>());
@@ -673,26 +673,26 @@ namespace ClosureSourceMaps
    * A implementation of the Base64VLQ CharIterator used for decoding the
    * mappings encoded in the JSON string.
    */
-        private static class StringCharIterator: CharIterator 
+        private class StringCharIterator: CharIterator 
         {
             readonly String content;
             readonly int length;
             int current = 0;
 
-            StringCharIterator(String content) 
+            public StringCharIterator(string content) 
             {
                 this.content = content;
-                this.length = content.length();
+                this.length = content.Length;
             }
 
             public override char next() 
             {
-                return content.charAt(current++);
+                return content[current++];
             }
 
-            char peek() 
+            public char peek() 
             {
-                return content.charAt(current);
+                return content[current];
             }
 
             public override bool hasNext() 
@@ -717,11 +717,11 @@ namespace ClosureSourceMaps
    * This class represents a portion of the generated file, that is not mapped
    * to a section in the original source.
    */
-        private static class UnmappedEntry: Entry 
+        private class UnmappedEntry: Entry 
         {
             private readonly int column;
 
-            UnmappedEntry(int column) 
+            public UnmappedEntry(int column) 
             {
                 this.column = column;
             }
@@ -733,22 +733,22 @@ namespace ClosureSourceMaps
 
             public override int getSourceFileId() 
             {
-                return UNMAPPED;
+                return Unmapped;
             }
 
             public override int getSourceLine() 
             {
-                return UNMAPPED;
+                return Unmapped;
             }
 
             public override int getSourceColumn() 
             {
-                return UNMAPPED;
+                return Unmapped;
             }
 
             public override int getNameId() 
             {
-                return UNMAPPED;
+                return Unmapped;
             }
         }
 
@@ -756,13 +756,13 @@ namespace ClosureSourceMaps
    * This class represents a portion of the generated file, that is mapped
    * to a section in the original source.
    */
-        private static class UnnamedEntry: UnmappedEntry 
+        private class UnnamedEntry: UnmappedEntry 
         {
             private readonly int srcFile;
             private readonly int srcLine;
             private readonly int srcColumn;
 
-            UnnamedEntry(int column, int srcFile, int srcLine, int srcColumn) 
+            public UnnamedEntry(int column, int srcFile, int srcLine, int srcColumn) 
             {
                 super(column);
                 this.srcFile = srcFile;
@@ -787,7 +787,7 @@ namespace ClosureSourceMaps
 
             public override int getNameId() 
             {
-                return UNMAPPED;
+                return Unmapped;
             }
         }
 
@@ -795,11 +795,11 @@ namespace ClosureSourceMaps
    * This class represents a portion of the generated file, that is mapped
    * to a section in the original source, and is associated with a name.
    */
-        private static class NamedEntry: UnnamedEntry 
+        private class NamedEntry: UnnamedEntry 
         {
             private readonly int name;
 
-            NamedEntry(int column, int srcFile, int srcLine, int srcColumn, int name) 
+            public NamedEntry(int column, int srcFile, int srcLine, int srcColumn, int name) 
             {
                 super(column, srcFile, srcLine, srcColumn);
                 this.name = name;
@@ -828,13 +828,13 @@ namespace ClosureSourceMaps
             FilePosition sourceStartPosition = null;
             FilePosition startPosition = null;
 
-            int lineCount = lines.size();
+            int lineCount = lines.Count;
             for (int i = 0; i < lineCount; ++i) 
             {
-                ArrayList<Entry> line = lines.get(i);
+                List<Entry> line = lines.get(i);
                 if (line != null) 
                 {
-                    int entryCount = line.size();
+                    int entryCount = line.Count;
                     for (int j = 0; j < entryCount; ++j) 
                     {
                         Entry entry = line.get(j);
@@ -851,11 +851,11 @@ namespace ClosureSourceMaps
                             pending = false;
                         }
 
-                        if (entry.getSourceFileId() != UNMAPPED) 
+                        if (entry.getSourceFileId() != Unmapped) 
                         {
                             pending = true;
                             sourceName = sources[entry.getSourceFileId()];
-                            symbolName = (entry.getNameId() != UNMAPPED) ? names[entry.getNameId()] : null;
+                            symbolName = (entry.getNameId() != Unmapped) ? names[entry.getNameId()] : null;
                             sourceStartPosition = new FilePosition(
                                                     entry.getSourceLine(), entry.getSourceColumn());
                             startPosition = new FilePosition(
