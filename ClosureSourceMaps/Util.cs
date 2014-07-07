@@ -52,7 +52,7 @@ namespace ClosureSourceMaps
         /// <param name="backslashEscape"></param>
         /// <param name="outputCharsetEncoder"></param>
         /// <returns></returns>
-        public static string escapeString(string s, char quote, string doublequoteEscape,
+        internal static string escapeString(string s, char quote, string doublequoteEscape,
                                    string singlequoteEscape, string backslashEscape,
                                    Encoding outputCharsetEncoder)
         {

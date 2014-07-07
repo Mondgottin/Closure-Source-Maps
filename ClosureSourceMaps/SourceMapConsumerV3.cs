@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Collections;
 using Newtonsoft.Json;
+using System.Diagnostics;
 
 // import org.json.JSONArray;
 // import org.json.JSONException;
@@ -268,14 +269,15 @@ namespace ClosureSourceMaps
             lineNumber--;
             column--;
 
-            if (lineNumber < 0 || lineNumber >= lines.size()) 
+            if (lineNumber < 0 || lineNumber >= lines.Count) 
             {
                 return null;
             }
 
-            Preconditions.CheckState(lineNumber >= 0);
-            Preconditions.CheckState(column >= 0);
-
+            // Preconditions.CheckState(lineNumber >= 0);
+            // Preconditions.CheckState(column >= 0);
+            Trace.Assert((lineNumber >= 0);
+            Trace.Assert(column >= 0);
 
             // If the line is empty return the previous mapping.
             if (lines.get(lineNumber) == null) 
@@ -285,7 +287,7 @@ namespace ClosureSourceMaps
 
             List<Entry> entries = lines.get(lineNumber);
             // No empty lists.
-            Preconditions.CheckState(entries.size() > 0);
+            Preconditions.CheckState(entries.Count > 0);
             if (entries.get(0).getGeneratedColumn() > column) 
             {
                 return getPreviousMapping(lineNumber);
@@ -296,9 +298,9 @@ namespace ClosureSourceMaps
             return getOriginalMappingForEntry(entries.get(index));
         }
 
-        public override Collection<String> getOriginalSources() 
+        public override List<string> getOriginalSources() 
         {
-            return Arrays.asList(sources);
+            return sources.ToList<string>();
         }
 
         public override Collection<OriginalMapping> getReverseMapping(String originalFile, int line, int column) 
@@ -399,8 +401,8 @@ namespace ClosureSourceMaps
                         {
                             result = null;
                         }
-                        lines.add(result);
-                        entries.clear();
+                        lines.Add(result);
+                        entries.Clear();
                         line++;
                         previousCol = 0;
                     } 
@@ -416,7 +418,7 @@ namespace ClosureSourceMaps
                         Entry entry = decodeEntry(temp, entryValues);
 
                         validateEntry(entry);
-                        entries.add(entry);
+                        entries.Add(entry);
 
                       // Consume the separating token, if there is one.
                         tryConsumeToken(',');
@@ -432,9 +434,9 @@ namespace ClosureSourceMaps
             {
                 Preconditions.CheckState((lineCount < 0) || (line < lineCount));
                 Preconditions.CheckState(entry.getSourceFileId() == Unmapped
-                                      || entry.getSourceFileId() < sources.length);
+                                      || entry.getSourceFileId() < sources.Length);
                 Preconditions.CheckState(entry.getNameId() == Unmapped
-                                      || entry.getNameId() < names.length);
+                                      || entry.getNameId() < names.Length);
             }
 
     /**

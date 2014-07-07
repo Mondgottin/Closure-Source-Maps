@@ -94,7 +94,7 @@ namespace ClosureSourceMaps
         /// <summary>
         /// A pre-order traversal ordered list of mappings stored in this map.
         /// </summary>
-        private static List<Mapping> mappings = new List<Mapping>();
+        private List<Mapping> mappings = new List<Mapping>();
 
         /// <summary>
         /// A map of source names to source name index.
@@ -132,7 +132,7 @@ namespace ClosureSourceMaps
         /// generated the compiled source file by the addition of a
         /// an output wrapper prefix.
         /// </summary>
-        private static FilePosition prefixPosition = new FilePosition(0, 0);
+        private FilePosition prefixPosition = new FilePosition(0, 0);
 
         /// <summary>
         /// A list of extensions to be added to sourcemap. The value is a object
@@ -382,7 +382,7 @@ namespace ClosureSourceMaps
             appendField(output, "lineCount", (maxLine + 1).ToString());
 
             //optional source root
-            if (String.IsNullOrEmpty(this.sourceRootPath)) 
+            if (!String.IsNullOrEmpty(this.sourceRootPath)) 
             {
                 appendField(output, "sourceRoot", escapeString(this.sourceRootPath));
             }
@@ -568,6 +568,7 @@ namespace ClosureSourceMaps
         private static void appendFieldEnd(StringBuilder output)
         {
         }
+        #pragma warning restore 0169
 
         /// <summary>
         /// Assigns sequential ids to used mappings, and returns the last line mapped.
