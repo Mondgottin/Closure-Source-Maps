@@ -52,7 +52,7 @@ namespace ClosureSourceMaps
         private string[] names;
         private int lineCount;
         // Slots in the lines list will be null if the line does not have any entries.
-        private List<List<IDictionary>> lines = null;
+        private List<List<IEntry>> lines = null;
         /// <summary>
         /// originalFile path ==> original line ==> target mappings.
         /// </summary>
@@ -144,11 +144,11 @@ namespace ClosureSourceMaps
 
                 if (lineCount >= 0)
                 {
-                    lines = new List<List<IDictionary>>(lineCount);
+                    lines = new List<List<IEntry>>(lineCount);
                 } 
                 else 
                 {
-                    lines = new List<List<IDictionary>>();
+                    lines = new List<List<IEntry>>();
                 }
 
                 if (sourceMapRoot["sourceRoot"] != null)
@@ -189,13 +189,13 @@ namespace ClosureSourceMaps
             try 
             {
                 // Check basic assertions about the format.
-                int version = sourceMapRoot.getInt("version");
+                int version = (int) sourceMapRoot["version"];
                 if (version != 3)
                 {
                     throw new SourceMapParseException("Unknown version: " + version);
                 }
 
-                String file = sourceMapRoot.getString("file");
+                string file = (string) sourceMapRoot["file"];
                 if (String.IsNullOrEmpty(file))
                 {
                     throw new SourceMapParseException("File entry is missing or empty");
@@ -251,7 +251,7 @@ namespace ClosureSourceMaps
                     throw new RuntimeException(e);
                 }
 
-                parse(sb.ToString());
+                Parse(sb.ToString());
             }
             catch (IOException ex) 
             {
@@ -274,28 +274,26 @@ namespace ClosureSourceMaps
                 return null;
             }
 
-            // Preconditions.CheckState(lineNumber >= 0);
-            // Preconditions.CheckState(column >= 0);
-            Trace.Assert((lineNumber >= 0);
+            Trace.Assert(lineNumber >= 0);
             Trace.Assert(column >= 0);
 
             // If the line is empty return the previous mapping.
-            if (lines.get(lineNumber) == null) 
+            if (lines[lineNumber] == null) 
             {
                 return getPreviousMapping(lineNumber);
             }
 
-            List<Entry> entries = lines.get(lineNumber);
+            List<IEntry> entries = lines[lineNumber];
             // No empty lists.
-            Preconditions.CheckState(entries.Count > 0);
-            if (entries.get(0).getGeneratedColumn() > column) 
+            Trace.Assert(entries.Count > 0);
+            if (entries[0].getGeneratedColumn() > column) 
             {
                 return getPreviousMapping(lineNumber);
             }
 
-            int index = search(entries, column, 0, entries.size() - 1);
-            Preconditions.CheckState(index >= 0, "unexpected:%s", index);
-            return getOriginalMappingForEntry(entries.get(index));
+            int index = search(entries, column, 0, entries.Count - 1);
+            Trace.Assert(index >= 0, string.Format("unexpected:{0}s", index));
+            return getOriginalMappingForEntry(entries[index]);
         }
 
         public override List<string> getOriginalSources() 
@@ -303,7 +301,7 @@ namespace ClosureSourceMaps
             return sources.ToList<string>();
         }
 
-        public override Collection<OriginalMapping> getReverseMapping(String originalFile, int line, int column) 
+        public override List<OriginalMapping> getReverseMapping(string originalFile, int line, int column) 
         {
             // TODO(user): This implementation currently does not make use of the column
             // parameter.
@@ -314,20 +312,20 @@ namespace ClosureSourceMaps
                 createReverseMapping();
             }
 
-            Map<Integer, Collection<OriginalMapping>> sourceLineToCollectionMap =
+            Dictionary<int, List<OriginalMapping>> sourceLineToCollectionMap =
             reverseSourceMapping.get(originalFile);
 
             if (sourceLineToCollectionMap == null) 
             {
-                return Collections.emptyList();
+                return new List<OriginalMapping>();
             } 
             else 
             {
-                Collection<OriginalMapping> mappings = sourceLineToCollectionMap.get(line);
+                List<OriginalMapping> mappings = sourceLineToCollectionMap[line];
 
                 if (mappings == null) 
                 {
-                    return Collections.emptyList();
+                    return new List<OriginalMapping>();
                 } 
                 else 
                 {
@@ -382,7 +380,7 @@ namespace ClosureSourceMaps
             public void build() 
             {
                 int [] temp = new int[MAX_ENTRY_VALUES];
-                List<Entry> entries = new List<Entry>();
+                List<IEntry> entries = new List<IEntry>();
                 while (content.hasNext()) 
                 {
                     // ';' denotes a new line.
@@ -390,12 +388,12 @@ namespace ClosureSourceMaps
                     {
                         // The line is complete, store the result for the line,
                         // null if the line is empty.
-                        List<Entry> result;
+                        List<IEntry> result;
                         if (entries.Count > 0) 
                         {
                             result = entries;
                             // A new array list for the next line.
-                            entries = new ArrayList<Entry>();
+                            entries = new List<IEntry>();
                         } 
                         else 
                         {
@@ -415,7 +413,7 @@ namespace ClosureSourceMaps
                             temp[entryValues] = nextValue();
                             entryValues++;
                         }
-                        Entry entry = decodeEntry(temp, entryValues);
+                        IEntry entry = decodeEntry(temp, entryValues);
 
                         validateEntry(entry);
                         entries.Add(entry);
@@ -430,26 +428,25 @@ namespace ClosureSourceMaps
             /// Sanity check the entry.
             /// </summary>
             /// <param name="entry"></param>
-            private void validateEntry(Entry entry) 
+            private void validateEntry(IEntry entry) 
             {
-                Preconditions.CheckState((lineCount < 0) || (line < lineCount));
-                Preconditions.CheckState(entry.getSourceFileId() == Unmapped
-                                      || entry.getSourceFileId() < sources.Length);
-                Preconditions.CheckState(entry.getNameId() == Unmapped
-                                      || entry.getNameId() < names.Length);
+                Trace.Assert((lineCount < 0) || (line < lineCount));
+                Trace.Assert(entry.getSourceFileId() == Unmapped
+                          || entry.getSourceFileId() < sources.Length);
+                Trace.Assert(entry.getNameId() == Unmapped
+                          || entry.getNameId() < names.Length);
             }
 
-    /**
-     * Decodes the next entry, using the previous encountered values to
-     * decode the relative values.
-     *
-     * @param vals An array of integers that represent values in the entry.
-     * @param entryValues The number of entries in the array.
-     * @return The entry object.
-     */
-            private Entry decodeEntry(int[] vals, int entryValues) 
+            /// <summary>
+            /// Decodes the next entry, using the previous encountered values to
+            /// decode the relative values.
+            /// </summary>
+            /// <param name="vals">An array of integers that represent values in the entry.</param>
+            /// <param name="entryValues">The number of entries in the array.</param>
+            /// <returns>The entry object.</returns>
+            private IEntry decodeEntry(int[] vals, int entryValues) 
             {
-                Entry entry;
+                IEntry entry;
                 switch (entryValues) 
                 {
                     // The first values, if present are in the following order:
@@ -500,7 +497,7 @@ namespace ClosureSourceMaps
                         return entry;
 
                     default:
-                        throw new IllegalStateException("Unexpected number of values for entry:" + entryValues);
+                        throw new Exception("Unexpected number of values for entry:" + entryValues);
                 }
             }
 
@@ -531,12 +528,12 @@ namespace ClosureSourceMaps
                 return Base64Vlq.Decode(content);
             }
         }
-
-  /**
-   * Perform a binary search on the array to find a section that covers
-   * the target column.
-   */
-        private int search(List<Entry> entries, int target, int start, int end) 
+        
+        /// <summary>
+        /// Perform a binary search on the array to find a section that covers
+        /// the target column
+        /// </summary>
+        private int search(List<IEntry> entries, int target, int start, int end) 
         {
             while (true) 
             {
@@ -567,18 +564,18 @@ namespace ClosureSourceMaps
             }
         }
 
-  /**
-   * Compare an array entry's column value to the target column value.
-   */
-        private int compareEntry(List<Entry> entries, int entry, int target) 
+        /// <summary>
+        /// Compare an array entry's column value to the target column value.
+        /// </summary>
+        private int compareEntry(List<IEntry> entries, int entry, int target) 
         {
-            return entries.get(entry).getGeneratedColumn() - target;
+            return entries[entry].getGeneratedColumn() - target;
         }
-
-  /**
-   * Returns the mapping entry that proceeds the supplied line or null if no
-   * such entry exists.
-   */
+        
+        /// <summary>
+        /// Returns the mapping entry that proceeds the supplied line or null if no
+        /// such entry exists.
+        /// </summary>
         private OriginalMapping getPreviousMapping(int lineNumber) 
         {
             do 
@@ -589,15 +586,15 @@ namespace ClosureSourceMaps
                 }
                 lineNumber--;
             } 
-            while (lines.get(lineNumber) == null);
-            List<Entry> entries = lines.get(lineNumber);
-            return getOriginalMappingForEntry(entries.get(entries.Count - 1));
+            while (lines[lineNumber] == null);
+            List<IEntry> entries = lines[lineNumber];
+            return getOriginalMappingForEntry(entries[entries.Count - 1]);
         }
 
-  /**
-   * Creates an "OriginalMapping" object for the given entry object.
-   */
-        private OriginalMapping getOriginalMappingForEntry(Entry entry) 
+        /// <summary>
+        /// Creates an "OriginalMapping" object for the given entry object.
+        /// </summary>
+        private OriginalMapping getOriginalMappingForEntry(IEntry entry) 
         {
             if (entry.getSourceFileId() == Unmapped) 
             {
@@ -618,63 +615,64 @@ namespace ClosureSourceMaps
             }
         }
 
-  /**
-   * Reverse the source map; the created mapping will allow us to quickly go
-   * from a source file and line number to a collection of target
-   * OriginalMappings.
-   */
+        /// <summary>
+        /// Reverse the source map; the created mapping will allow us to quickly go
+        /// from a source file and line number to a collection of target
+        /// OriginalMappings.
+        /// </summary>
         private void createReverseMapping() 
         {
             reverseSourceMapping =
-                new HashMap<String, Map<Integer, Collection<OriginalMapping>>>();
+                new Dictionary<string, Dictionary<int, List<OriginalMapping>>>();
 
             for (int targetLine = 0; targetLine < lines.Count; ++targetLine) 
             {
-                List<Entry> entries = lines(targetLine);
+                List<IEntry> entries = lines[targetLine];
 
                 if (entries != null) 
                 {
-                    foreach (Entry entry in entries) 
+                    foreach (IEntry entry in entries) 
                     {
                         if (entry.getSourceFileId() != Unmapped
                             && entry.getSourceLine() != Unmapped) 
                         {
-                            String originalFile = sources[entry.getSourceFileId()];
+                            string originalFile = sources[entry.getSourceFileId()];
 
                             if (!reverseSourceMapping.ContainsKey(originalFile)) 
                             {
-                                reverseSourceMapping.put(originalFile,
-                                new HashMap<Integer, Collection<OriginalMapping>>());
+                                #warning HashMap was used
+                                reverseSourceMapping.Add(originalFile,
+                                new Dictionary<int, List<OriginalMapping>>());
                             }
 
-                            Map<Integer, Collection<OriginalMapping>> lineToCollectionMap =
-                                reverseSourceMapping.get(originalFile);
+                            Dictionary<int, List<OriginalMapping>> lineToCollectionMap =
+                                reverseSourceMapping.get(originalFile)  ;
 
                             int sourceLine = entry.getSourceLine();
 
-                            if (!lineToCollectionMap.containsKey(sourceLine)) 
+                            if (!lineToCollectionMap.ContainsKey(sourceLine)) 
                             {
                                 lineToCollectionMap.put(sourceLine,
-                                    new ArrayList<OriginalMapping>(1));
+                                    new List<OriginalMapping>(1));
                             }
 
-                            Collection<OriginalMapping> mappings =
-                                lineToCollectionMap.get(sourceLine);
+                            List<OriginalMapping> mappings =
+                                lineToCollectionMap[sourceLine];
 
                             Builder builder = OriginalMapping.newBuilder().setLineNumber(
                                 targetLine).setColumnPosition(entry.getGeneratedColumn());
 
-                            mappings.add(builder.build());
+                            mappings.Add(builder.build());
                         }
                     }
                 }
             }
         }
 
-  /**
-   * A implementation of the Base64VLQ CharIterator used for decoding the
-   * mappings encoded in the JSON string.
-   */
+        /// <summary>
+        /// A implementation of the Base64VLQ CharIterator used for decoding the
+        /// mappings encoded in the JSON string.
+        /// </summary>
         private class StringCharIterator: CharIterator 
         {
             readonly String content;
@@ -703,10 +701,10 @@ namespace ClosureSourceMaps
             }
         }
 
-  /**
-   * Represents a mapping entry in the source map.
-   */
-        private interface Entry 
+        /// <summary>
+        /// Represents a mapping entry in the source map.
+        /// </summary>
+        private interface IEntry 
         {
             int getGeneratedColumn();
             int getSourceFileId();
@@ -715,11 +713,11 @@ namespace ClosureSourceMaps
             int getNameId();
         }
 
-  /**
-   * This class represents a portion of the generated file, that is not mapped
-   * to a section in the original source.
-   */
-        private class UnmappedEntry: Entry 
+        /// <summary>
+        /// This class represents a portion of the generated file, that is not mapped
+        /// to a section in the original source.
+        /// </summary>
+        private class UnmappedEntry: IEntry 
         {
             private readonly int column;
 
@@ -754,19 +752,19 @@ namespace ClosureSourceMaps
             }
         }
 
-  /**
-   * This class represents a portion of the generated file, that is mapped
-   * to a section in the original source.
-   */
+        /// <summary>
+        /// This class represents a portion of the generated file, that is mapped
+        /// to a section in the original source.
+        /// </summary>
         private class UnnamedEntry: UnmappedEntry 
         {
             private readonly int srcFile;
             private readonly int srcLine;
             private readonly int srcColumn;
 
-            public UnnamedEntry(int column, int srcFile, int srcLine, int srcColumn) 
+            public UnnamedEntry(int column, int srcFile, int srcLine, int srcColumn)
+                : base(column)
             {
-                super(column);
                 this.srcFile = srcFile;
                 this.srcLine = srcLine;
                 this.srcColumn = srcColumn;
@@ -793,17 +791,18 @@ namespace ClosureSourceMaps
             }
         }
 
-  /**
-   * This class represents a portion of the generated file, that is mapped
-   * to a section in the original source, and is associated with a name.
-   */
+        /// <summary>
+        /// This class represents a portion of the generated file, that is mapped
+        /// to a section in the original source, and is associated with a name.
+        /// </summary>
         private class NamedEntry: UnnamedEntry 
         {
             private readonly int name;
 
-            public NamedEntry(int column, int srcFile, int srcLine, int srcColumn, int name) 
+            public NamedEntry(int column, int srcFile, int srcLine, int srcColumn, int name)                 
+                :base(column, srcFile, srcLine, srcColumn)
+
             {
-                super(column, srcFile, srcLine, srcColumn);
                 this.name = name;
             }
 
@@ -833,13 +832,13 @@ namespace ClosureSourceMaps
             int lineCount = lines.Count;
             for (int i = 0; i < lineCount; ++i) 
             {
-                List<Entry> line = lines.get(i);
+                List<IEntry> line = lines[i];
                 if (line != null) 
                 {
                     int entryCount = line.Count;
                     for (int j = 0; j < entryCount; ++j) 
                     {
-                        Entry entry = line.get(j);
+                        IEntry entry = line[j];
                         if (pending) 
                         {
                             FilePosition endPosition = new FilePosition(
