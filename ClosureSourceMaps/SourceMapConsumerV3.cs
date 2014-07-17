@@ -266,8 +266,8 @@ namespace ClosureSourceMaps
         public override OriginalMapping getMappingForLine(int lineNumber, int column) 
         {
             // Normalize the line and column numbers to 0.
-            lineNumber--;
-            column--;
+            --lineNumber;
+            --column;
 
             if (lineNumber < 0 || lineNumber >= lines.Count) 
             {
@@ -652,7 +652,7 @@ namespace ClosureSourceMaps
 
                             if (!lineToCollectionMap.ContainsKey(sourceLine)) 
                             {
-                                lineToCollectionMap.put(sourceLine,
+                                lineToCollectionMap.Add(sourceLine,
                                     new List<OriginalMapping>(1));
                             }
 
@@ -673,9 +673,9 @@ namespace ClosureSourceMaps
         /// A implementation of the Base64VLQ CharIterator used for decoding the
         /// mappings encoded in the JSON string.
         /// </summary>
-        private class StringCharIterator: CharIterator 
+        private class StringCharIterator: IEnumerable<char> 
         {
-            readonly String content;
+            readonly string content;
             readonly int length;
             int current = 0;
 
