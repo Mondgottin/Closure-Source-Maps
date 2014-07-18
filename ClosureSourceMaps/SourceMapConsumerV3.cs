@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Collections;
 using Newtonsoft.Json;
-using System.Diagnostics;
+using System.Diagnostics.Contracts;
 
 // import org.json.JSONArray;
 // import org.json.JSONException;
@@ -189,12 +189,14 @@ namespace ClosureSourceMaps
             try 
             {
                 // Check basic assertions about the format.
+                Contract.Assert(sourceMapRoot["version"].GetType() == typeof(int));
                 int version = (int) sourceMapRoot["version"];
                 if (version != 3)
                 {
                     throw new SourceMapParseException("Unknown version: " + version);
                 }
 
+                Contract.Assert(sourceMapRoot["file"].GetType() == typeof(string));
                 string file = (string) sourceMapRoot["file"];
                 if (String.IsNullOrEmpty(file))
                 {
@@ -274,8 +276,8 @@ namespace ClosureSourceMaps
                 return null;
             }
 
-            Trace.Assert(lineNumber >= 0);
-            Trace.Assert(column >= 0);
+            Contract.Assert(lineNumber >= 0);
+            Contract.Assert(column >= 0);
 
             // If the line is empty return the previous mapping.
             if (lines[lineNumber] == null) 
@@ -285,14 +287,14 @@ namespace ClosureSourceMaps
 
             List<IEntry> entries = lines[lineNumber];
             // No empty lists.
-            Trace.Assert(entries.Count > 0);
+            Contract.Assert(entries.Count > 0);
             if (entries[0].getGeneratedColumn() > column) 
             {
                 return getPreviousMapping(lineNumber);
             }
 
             int index = search(entries, column, 0, entries.Count - 1);
-            Trace.Assert(index >= 0, string.Format("unexpected:{0}s", index));
+            Contract.Assert(index >= 0, string.Format("unexpected:{0}s", index));
             return getOriginalMappingForEntry(entries[index]);
         }
 
@@ -313,7 +315,7 @@ namespace ClosureSourceMaps
             }
 
             Dictionary<int, List<OriginalMapping>> sourceLineToCollectionMap =
-            reverseSourceMapping.get(originalFile);
+            reverseSourceMapping[originalFile];
 
             if (sourceLineToCollectionMap == null) 
             {
@@ -430,10 +432,10 @@ namespace ClosureSourceMaps
             /// <param name="entry"></param>
             private void validateEntry(IEntry entry) 
             {
-                Trace.Assert((lineCount < 0) || (line < lineCount));
-                Trace.Assert(entry.getSourceFileId() == Unmapped
+                Contract.Assert((lineCount < 0) || (line < lineCount));
+                Contract.Assert(entry.getSourceFileId() == Unmapped
                           || entry.getSourceFileId() < sources.Length);
-                Trace.Assert(entry.getNameId() == Unmapped
+                Contract.Assert(entry.getNameId() == Unmapped
                           || entry.getNameId() < names.Length);
             }
 
