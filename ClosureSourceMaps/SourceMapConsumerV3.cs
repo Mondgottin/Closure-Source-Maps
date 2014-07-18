@@ -22,7 +22,8 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Collections;
 using Newtonsoft.Json;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
+using System.IO;
 
 // import org.json.JSONArray;
 // import org.json.JSONException;
@@ -179,7 +180,7 @@ namespace ClosureSourceMaps
         /// </summary>
         /// <param name="sourceMapRoot"></param>
         /// <param name="sectionSupplier"></param>
-        private void parseMetaMap(JObject sourceMapRoot, SourceMapSupplier sectionSupplier)
+        private void parseMetaMap(JObject sourceMapRoot, ISourceMapSupplier sectionSupplier)
         {
             if (sectionSupplier == null) 
             {
@@ -189,14 +190,14 @@ namespace ClosureSourceMaps
             try 
             {
                 // Check basic assertions about the format.
-                Contract.Assert(sourceMapRoot["version"].GetType() == typeof(int));
+                Debug.Assert(sourceMapRoot["version"].GetType() == typeof(int));
                 int version = (int) sourceMapRoot["version"];
                 if (version != 3)
                 {
                     throw new SourceMapParseException("Unknown version: " + version);
                 }
 
-                Contract.Assert(sourceMapRoot["file"].GetType() == typeof(string));
+                Debug.Assert(sourceMapRoot["file"].GetType() == typeof(string));
                 string file = (string) sourceMapRoot["file"];
                 if (String.IsNullOrEmpty(file))
                 {
@@ -210,21 +211,21 @@ namespace ClosureSourceMaps
                 }
 
                 SourceMapGeneratorV3 generator = new SourceMapGeneratorV3();
-                JSONArray sections = sourceMapRoot.getJSONArray("sections");
+                JArray sections = sourceMapRoot.getJSONArray("sections");
                 for (int i = 0, count = sections.length(); i < count; i++) 
                 {
-                    JSONObject section = sections.getJSONObject(i);
+                    JObject section = sections.getJSONObject(i);
                     if (section.has("map") && section.has("url"))
                     {
                         throw new SourceMapParseException("Invalid map format: section may not have both 'map' and 'url'");
                     }
-                    JSONObject offset = section.getJSONObject("offset");
+                    JObject offset = section.getJSONObject("offset");
                     int line = offset.getInt("line");
                     int column = offset.getInt("column");
-                    String mapSectionContents;
+                    string mapSectionContents;
                     if (section.has("url")) 
                     {
-                        String url = section.getString("url");
+                        string url = section.getString("url");
                         mapSectionContents = sectionSupplier.getSourceMap(url);
                         if (mapSectionContents == null) 
                         {
@@ -259,7 +260,7 @@ namespace ClosureSourceMaps
             {
                 throw new SourceMapParseException("IO exception: " + ex);
             } 
-            catch (JSONException ex) 
+            catch (JException ex) 
             {
                 throw new SourceMapParseException("JSON parse exception: " + ex);
             }
@@ -276,8 +277,8 @@ namespace ClosureSourceMaps
                 return null;
             }
 
-            Contract.Assert(lineNumber >= 0);
-            Contract.Assert(column >= 0);
+            Debug.Assert(lineNumber >= 0);
+            Debug.Assert(column >= 0);
 
             // If the line is empty return the previous mapping.
             if (lines[lineNumber] == null) 
@@ -287,14 +288,14 @@ namespace ClosureSourceMaps
 
             List<IEntry> entries = lines[lineNumber];
             // No empty lists.
-            Contract.Assert(entries.Count > 0);
+            Debug.Assert(entries.Count > 0);
             if (entries[0].getGeneratedColumn() > column) 
             {
                 return getPreviousMapping(lineNumber);
             }
 
             int index = search(entries, column, 0, entries.Count - 1);
-            Contract.Assert(index >= 0, string.Format("unexpected:{0}s", index));
+            Debug.Assert(index >= 0, string.Format("unexpected:{0}s", index));
             return getOriginalMappingForEntry(entries[index]);
         }
 
@@ -352,9 +353,9 @@ namespace ClosureSourceMaps
         }
 
 
-        private String[] getJavaStringArray(JSONArray array)
+        private String[] getJavaStringArray(JArray array)
         {
-            int len = array.length();
+            int len = array.Count;
             String[] result = new String[len];
             for(int i = 0; i < len; i++) 
             {
@@ -374,7 +375,7 @@ namespace ClosureSourceMaps
             private int previousSrcColumn = 0;
             private int previousNameId = 0;
 
-            public MappingBuilder(String lineMap) 
+            public MappingBuilder(string lineMap) 
             {
                 this.content = new StringCharIterator(lineMap);
             }
@@ -432,10 +433,10 @@ namespace ClosureSourceMaps
             /// <param name="entry"></param>
             private void validateEntry(IEntry entry) 
             {
-                Contract.Assert((lineCount < 0) || (line < lineCount));
-                Contract.Assert(entry.getSourceFileId() == Unmapped
+                Debug.Assert((lineCount < 0) || (line < lineCount));
+                Debug.Assert(entry.getSourceFileId() == Unmapped
                           || entry.getSourceFileId() < sources.Length);
-                Contract.Assert(entry.getNameId() == Unmapped
+                Debug.Assert(entry.getNameId() == Unmapped
                           || entry.getNameId() < names.Length);
             }
 
