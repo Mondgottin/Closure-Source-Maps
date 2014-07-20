@@ -93,9 +93,8 @@ namespace ClosureSourceMaps
                 JObject sourceMapRoot = new JObject(contents);
                 Parse(sourceMapRoot, sectionSupplier);
             }
-            catch (Exception ex) 
+            catch (JsonException ex) 
             {
-                #warning Clarify an exception
                 throw new SourceMapParseException("Json parse exception: " + ex);
             }
         }
@@ -168,7 +167,7 @@ namespace ClosureSourceMaps
 
                 new MappingBuilder(lineMap).build();
             }
-            catch(Exception ex)
+            catch(JsonException ex)
             {
                 throw new SourceMapParseException("JSON parse exception: " + ex);
             }
@@ -251,7 +250,7 @@ namespace ClosureSourceMaps
                 catch (IOException e) 
                 {
                     // Can't happen.
-                    throw new RuntimeException(e);
+                    throw new Exception("Runtime exception", e);
                 }
 
                 Parse(sb.ToString());
@@ -260,7 +259,7 @@ namespace ClosureSourceMaps
             {
                 throw new SourceMapParseException("IO exception: " + ex);
             } 
-            catch (JException ex) 
+            catch (JsonException ex) 
             {
                 throw new SourceMapParseException("JSON parse exception: " + ex);
             }
@@ -337,7 +336,7 @@ namespace ClosureSourceMaps
             }
         }
 
-        public String getSourceRoot()
+        public string getSourceRoot()
         {
             return this.sourceRoot;
         }
@@ -500,7 +499,7 @@ namespace ClosureSourceMaps
                         return entry;
 
                     default:
-                        throw new Exception("Unexpected number of values for entry:" + entryValues);
+                        throw new InvalidOperationException("Unexpected number of values for entry:" + entryValues);
                 }
             }
 

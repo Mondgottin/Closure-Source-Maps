@@ -49,6 +49,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.IO;
 
 namespace ClosureSourceMaps
 {
@@ -286,7 +287,7 @@ namespace ClosureSourceMaps
             mappings.Add(mapping);
         }
 
-        class ConsumerEntryVisitor: EntryVisitor 
+        class ConsumerEntryVisitor: SourceMapConsumerV3.EntryVisitor 
         {
             public override void Visit(string sourceName, string symbolName, FilePosition sourceStartPosition,
                                        FilePosition startPosition, FilePosition endPosition) 
@@ -844,7 +845,7 @@ namespace ClosureSourceMaps
                 }
                 else
                 {
-                    throw new Exception("Unexpected section type");
+                    throw new IOException("Unexpected section type");
                 }
                 output.Append("\n}");
             }

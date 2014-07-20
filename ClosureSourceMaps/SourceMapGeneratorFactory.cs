@@ -39,7 +39,7 @@ namespace ClosureSourceMaps
     {
         /// <summary></summary>
         /// <returns>The appropriate source map object for the given source map format.</returns>
-        public static SourceMapGenerator GetInstance()
+        public static ISourceMapGenerator GetInstance()
         {
             return GetInstance(SourceMapFormat.Default);
         }
@@ -47,7 +47,7 @@ namespace ClosureSourceMaps
         /// <summary></summary>
         /// <param name="format"></param>
         /// <returns>The appropriate source map object for the given source map format.</returns>
-        public static SourceMapGenerator GetInstance(SourceMapFormat format)
+        public static ISourceMapGenerator GetInstance(SourceMapFormat format)
         {
             switch (format)
             {
@@ -55,8 +55,7 @@ namespace ClosureSourceMaps
                 case SourceMapFormat.V3:
                     return new SourceMapGeneratorV3();
                 default:
-                    #warning Clarify an exceptioin
-                    throw new Exception("unsupported source map format");
+                    throw new InvalidOperationException("unsupported source map format");
             }
         }
     }

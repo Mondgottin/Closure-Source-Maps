@@ -21,6 +21,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
 using System.Exception;
+using System.IO;
 
 /**
  * @author johnlenz@google.com (John Lenz)
@@ -161,11 +162,10 @@ namespace ClosureSourceMaps
             {
                 appendHexJavaScriptRepresentation(sb, (int)c);
             } 
-            catch (Exception ex) 
+            catch (IOException ex) 
             {
                 // StringBuilder does not throw IOException.
-                #warning Clarify an exception
-                throw ex;
+                throw new Exception("Runtime exception", ex);
             }
         }
 
