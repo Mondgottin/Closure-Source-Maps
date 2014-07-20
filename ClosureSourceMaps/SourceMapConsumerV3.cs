@@ -203,18 +203,18 @@ namespace ClosureSourceMaps
                     throw new SourceMapParseException("File entry is missing or empty");
                 }
 
-                if (sourceMapRoot.has("lineCount") || sourceMapRoot.has("mappings")
-                   || sourceMapRoot.has("sources") || sourceMapRoot.has("names"))
+                if (sourceMapRoot["lineCount"] != null || sourceMapRoot["mappings"] != null
+                   || sourceMapRoot["sources"] != null || sourceMapRoot["names"] != null)
                 {
                     throw new SourceMapParseException("Invalid map format");
                 }
 
                 SourceMapGeneratorV3 generator = new SourceMapGeneratorV3();
                 JArray sections = sourceMapRoot.getJSONArray("sections");
-                for (int i = 0, count = sections.length(); i < count; i++) 
+                for (int i = 0, count = sections.Count; i < count; i++) 
                 {
                     JObject section = sections.getJSONObject(i);
-                    if (section.has("map") && section.has("url"))
+                    if (section["map"] != null && section["url"] != null)
                     {
                         throw new SourceMapParseException("Invalid map format: section may not have both 'map' and 'url'");
                     }
@@ -222,7 +222,7 @@ namespace ClosureSourceMaps
                     int line = offset.getInt("line");
                     int column = offset.getInt("column");
                     string mapSectionContents;
-                    if (section.has("url")) 
+                    if (section["url"] != null) 
                     {
                         string url = section.getString("url");
                         mapSectionContents = sectionSupplier.getSourceMap(url);
@@ -231,7 +231,7 @@ namespace ClosureSourceMaps
                             throw new SourceMapParseException("Unable to retrieve: " + url);
                         }
                     } 
-                    else if (section.has("map")) 
+                    else if (section["map"] != null) 
                     {
                         mapSectionContents = section.getString("map");
                     } 
@@ -355,10 +355,10 @@ namespace ClosureSourceMaps
         private String[] getJavaStringArray(JArray array)
         {
             int len = array.Count;
-            String[] result = new String[len];
+            string[] result = new string[len];
             for(int i = 0; i < len; i++) 
             {
-                result[i] = array.getString(i);
+                result[i] = array[i].ToString();
             }
             return result;
         }
