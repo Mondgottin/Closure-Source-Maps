@@ -57,7 +57,7 @@ namespace ClosureSourceMaps
         /// <summary>
         /// originalFile path ==> original line ==> target mappings.
         /// </summary>
-        private Dictionary<string, Dictionary<Int32, IEnumerable<OriginalMapping>>> reverseSourceMapping;
+        private Dictionary<string, Dictionary<Int32, List<OriginalMapping>>> reverseSourceMapping;
         private string sourceRoot;
         #warning Dictionary is not the same as LinkedHashMap
         private Dictionary<string, object> extensions = new Dictionary<string,object>();
@@ -118,7 +118,7 @@ namespace ClosureSourceMaps
             try 
             {
                 // Check basic assertions about the format.
-                int version = JsonConvert.DeserializeObject(sourceMapRoot.GetValue("version"), typeof(int));
+                int version = (int) JsonConvert.DeserializeObject(sourceMapRoot.GetValue("version").ToString(), typeof(int)); 
                 if (version != 3) 
                 {
                     throw new SourceMapParseException("Unknown version: " + version);
@@ -139,8 +139,9 @@ namespace ClosureSourceMaps
                 lineCount = sourceMapRoot["lineCount"] == null ? (int) sourceMapRoot["lineCount"] : -1;
                 string lineMap = sourceMapRoot["mappings"].ToString();
 
-                sources = getJavaStringArray(sourceMapRoot.getJSONArray("sources"));
-                names = getJavaStringArray(sourceMapRoot.getJSONArray("names"));
+                #warning Check functions below out using an example
+                sources = getStringArray(JArray.Parse(sourceMapRoot["sources"].ToString()));
+                names = getStringArray(JArray.Parse(sourceMapRoot["names"].ToString()));
 
                 if (lineCount >= 0)
                 {
@@ -156,7 +157,7 @@ namespace ClosureSourceMaps
                     sourceRoot = sourceMapRoot["sourceRoot"].ToString();
                 }
 
-                foreach (object objkey in Lists.newArrayList(sourceMapRoot.keys())) 
+                foreach (object objkey in sourceMapRoot.Properties().Select(p => p.Name).ToList()) 
                 {
                     string key = (string) objkey;
                     if (key.StartsWith("x_"))
@@ -172,8 +173,20 @@ namespace ClosureSourceMaps
                 throw new SourceMapParseException("JSON parse exception: " + ex);
             }
         }
-        
-        
+
+
+        private int getInt(JObject sourceMapRoot, string key)
+        {
+            Debug.Assert(sourceMapRoot[key].GetType() == typeof(int));
+            return (int) sourceMapRoot[key];
+        }
+
+        private string getString(JObject sourceMapRoot, string key)
+        {
+            Debug.Assert(sourceMapRoot[key].GetType() == typeof(string));
+            return (string) sourceMapRoot[key];
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -189,15 +202,13 @@ namespace ClosureSourceMaps
             try 
             {
                 // Check basic assertions about the format.
-                Debug.Assert(sourceMapRoot["version"].GetType() == typeof(int));
-                int version = (int) sourceMapRoot["version"];
+                int version = getInt(sourceMapRoot, "version");
                 if (version != 3)
                 {
                     throw new SourceMapParseException("Unknown version: " + version);
                 }
 
-                Debug.Assert(sourceMapRoot["file"].GetType() == typeof(string));
-                string file = (string) sourceMapRoot["file"];
+                string file = getString(sourceMapRoot, "file");
                 if (String.IsNullOrEmpty(file))
                 {
                     throw new SourceMapParseException("File entry is missing or empty");
@@ -210,22 +221,26 @@ namespace ClosureSourceMaps
                 }
 
                 SourceMapGeneratorV3 generator = new SourceMapGeneratorV3();
-                JArray sections = sourceMapRoot.getJSONArray("sections");
-                for (int i = 0, count = sections.Count; i < count; i++) 
+                JArray sections = JArray.Parse(sourceMapRoot["sections"].ToString());
+                for (int i = 0, count = sections.Count; i < count; i++)
                 {
-                    JObject section = sections.getJSONObject(i);
+                    #warning Check functions below out using an example
+                    JObject section = JObject.Parse(sections[i].ToString());
+                    
                     if (section["map"] != null && section["url"] != null)
                     {
                         throw new SourceMapParseException("Invalid map format: section may not have both 'map' and 'url'");
                     }
-                    JObject offset = section.getJSONObject("offset");
-                    int line = offset.getInt("line");
-                    int column = offset.getInt("column");
+                    
+                    #warning Check functions below out using an example
+                    JObject offset = JObject.Parse(section["offset"].ToString());
+                    int line = getInt(offset, "line");
+                    int column = getInt(offset, "column");
                     string mapSectionContents;
                     if (section["url"] != null) 
                     {
-                        string url = section.getString("url");
-                        mapSectionContents = sectionSupplier.getSourceMap(url);
+                        string url = getString(section, "url");
+                        mapSectionContents = sectionSupplier.GetSourceMap(url);
                         if (mapSectionContents == null) 
                         {
                             throw new SourceMapParseException("Unable to retrieve: " + url);
@@ -233,13 +248,13 @@ namespace ClosureSourceMaps
                     } 
                     else if (section["map"] != null) 
                     {
-                        mapSectionContents = section.getString("map");
+                        mapSectionContents = getString(section, "map");
                     } 
                     else 
                     {
                         throw new SourceMapParseException("Invalid map format: section must have either 'map' or 'url'");
                     }
-                    generator.mergeMapSection(line, column, mapSectionContents);
+                    generator.MergeMapSection(line, column, mapSectionContents);
                 }
 
                 StringBuilder sb = new StringBuilder();
@@ -352,7 +367,7 @@ namespace ClosureSourceMaps
         }
 
 
-        private String[] getJavaStringArray(JArray array)
+        private String[] getStringArray(JArray array)
         {
             int len = array.Count;
             string[] result = new string[len];
@@ -648,7 +663,7 @@ namespace ClosureSourceMaps
                             }
 
                             Dictionary<int, List<OriginalMapping>> lineToCollectionMap =
-                                reverseSourceMapping.get(originalFile)  ;
+                                reverseSourceMapping[originalFile]  ;
 
                             int sourceLine = entry.getSourceLine();
 
