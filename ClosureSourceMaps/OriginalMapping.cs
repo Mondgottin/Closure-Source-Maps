@@ -19,8 +19,5 @@ namespace ClosureSourceMaps
 
         // The original name of the identifier.
         private string identifier = "4";
-
-        private static Builder newBuilder()
-        {}
     }
 }

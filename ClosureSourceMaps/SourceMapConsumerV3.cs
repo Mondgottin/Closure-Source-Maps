@@ -49,11 +49,11 @@ namespace ClosureSourceMaps
     {
         static const int Unmapped = -1;
 
-        private string[] sources;
-        private string[] names;
-        private int lineCount;
+        private static string[] sources;
+        private static string[] names;
+        private static int lineCount;
         // Slots in the lines list will be null if the line does not have any entries.
-        private List<List<IEntry>> lines = null;
+        private static List<List<IEntry>> lines = null;
         /// <summary>
         /// originalFile path ==> original line ==> target mappings.
         /// </summary>
@@ -389,7 +389,7 @@ namespace ClosureSourceMaps
             private int previousSrcColumn = 0;
             private int previousNameId = 0;
 
-            public MappingBuilder(string lineMap) 
+            public MappingBuilder(string lineMap)
             {
                 this.content = new StringCharIterator(lineMap);
             }
@@ -838,7 +838,7 @@ namespace ClosureSourceMaps
                    FilePosition endPosition);
         }
 
-        public void visitMappings(EntryVisitor visitor) 
+        public void VisitMappings(EntryVisitor visitor) 
         {
             bool pending = false;
             String sourceName = null;

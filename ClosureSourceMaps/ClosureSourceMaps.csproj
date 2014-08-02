@@ -35,6 +35,7 @@
   <ItemGroup>
     <Compile Include="Base64.cs" />
     <Compile Include="Base64Vlq.cs" />
+    <Compile Include="Builder.cs" />
     <Compile Include="FilePosition.cs" />
     <Compile Include="IBuilder.cs" />
     <Compile Include="OriginalMapping.cs" />

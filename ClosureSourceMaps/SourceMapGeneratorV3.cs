@@ -49,26 +49,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 using System.IO;
 
 namespace ClosureSourceMaps
 {
-    public static class Preconditions
-    {
-        public Preconditions() {}
-        public static void CheckState(bool expression)
-        {
-            if (!expression)
-                throw new Exception();
-            
-            return;
-        }
-        public static void CheckState(bool expression, string errorMessage)
-        {
-
-        }
-    }
-
     class SourceMapGeneratorV3 : ISourceMapGenerator
     {
         /// <summary>
@@ -95,7 +80,7 @@ namespace ClosureSourceMaps
         /// <summary>
         /// A pre-order traversal ordered list of mappings stored in this map.
         /// </summary>
-        private List<Mapping> mappings = new List<Mapping>();
+        private static List<Mapping> mappings = new List<Mapping>();
 
         /// <summary>
         /// A map of source names to source name index.
@@ -133,7 +118,7 @@ namespace ClosureSourceMaps
         /// generated the compiled source file by the addition of a
         /// an output wrapper prefix.
         /// </summary>
-        private FilePosition prefixPosition = new FilePosition(0, 0);
+        private static FilePosition prefixPosition = new FilePosition(0, 0);
 
         /// <summary>
         /// A list of extensions to be added to sourcemap. The value is a object
@@ -210,8 +195,8 @@ namespace ClosureSourceMaps
         /// <param name="offsetIndex">The column index of the current character being printed.</param>
         public override void SetStartingPosition(int offsetLine, int offsetIndex)
         {
-            Preconditions.CheckState(offsetLine >= 0);
-            Preconditions.CheckState(offsetIndex >= 0);
+            Debug.Assert(offsetLine >= 0);
+            Debug.Assert(offsetIndex >= 0);
             offsetPosition = new FilePosition(offsetLine, offsetIndex);
         }
 
@@ -277,7 +262,7 @@ namespace ClosureSourceMaps
                 int nextLine = mapping.StartPosition.Line;
                 int nextColumn = mapping.StartPosition.Column;
 
-                Preconditions.CheckState(nextLine > lastLine || (nextLine == lastLine && nextColumn >= lastColumn),
+                Debug.Assert(nextLine > lastLine || (nextLine == lastLine && nextColumn >= lastColumn),
                                          string.Format("Incorrect source mappings order, previous : ({0},{1})\n"
                                          + "new : ({2},{3})\nnode : %s",
                                          lastLine, lastColumn, nextLine, nextColumn));
@@ -321,7 +306,7 @@ namespace ClosureSourceMaps
         /// <param name="column">The column offset.</param>
         /// <param name="mapSectionContents">The map section to be appended.</param>
         /// <param name="mergeAction">The merge action for conflicting extensions.</param>
-        public void MergeMapSection(int line, int column, string mapSectionContents, ExtensionMergeAction mergeAction)
+        public void MergeMapSection(int line, int column, string mapSectionContents, IExtensionMergeAction mergeAction)
         {
             SetStartingPosition(line, column);
             SourceMapConsumerV3 section = new SourceMapConsumerV3();
@@ -332,7 +317,7 @@ namespace ClosureSourceMaps
                 string extensionKey = kvp.Key;
                 if (extensions.ContainsKey(extensionKey)) 
                 {
-                    extensions.Add(extensionKey, mergeAction.merge(extensionKey, extensions[extensionKey],
+                    extensions.Add(extensionKey, mergeAction.Merge(extensionKey, extensions[extensionKey],
                                    kvp.Value));
                 }
                 else 
@@ -774,7 +759,7 @@ namespace ClosureSourceMaps
                 int nextCol = getAdjustedCol(m.StartPosition);
 
                 // If the previous value is null, no mapping exists.
-                Preconditions.CheckState(line < nextLine || col <= nextCol);
+                Debug.Assert(line < nextLine || col <= nextCol);
                 if (line < nextLine || (line == nextLine && col < nextCol))
                 {
                     visit(v, parent, nextLine, nextCol);
@@ -787,13 +772,13 @@ namespace ClosureSourceMaps
             /// </summary>
             private void visit(IMappingVisitor v, Mapping m, int nextLine, int nextCol)
             {
-                Preconditions.CheckState(line <= nextLine);
-                Preconditions.CheckState(line < nextLine || col < nextCol);
+                Debug.Assert(line <= nextLine);
+                Debug.Assert(line < nextLine || col < nextCol);
 
                 if (line == nextLine && col == nextCol)
                 {
                     // Nothing to do.
-                    Preconditions.CheckState(false);
+                    Debug.Assert(false);
                     return;
                 }
 
