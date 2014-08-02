@@ -303,7 +303,7 @@ namespace ClosureSourceMaps
             List<IEntry> entries = lines[lineNumber];
             // No empty lists.
             Debug.Assert(entries.Count > 0);
-            if (entries[0].getGeneratedColumn() > column) 
+            if (entries[0].GeneratedColumn > column) 
             {
                 return getPreviousMapping(lineNumber);
             }
@@ -448,10 +448,10 @@ namespace ClosureSourceMaps
             private void validateEntry(IEntry entry) 
             {
                 Debug.Assert((lineCount < 0) || (line < lineCount));
-                Debug.Assert(entry.getSourceFileId() == Unmapped
-                          || entry.getSourceFileId() < sources.Length);
-                Debug.Assert(entry.getNameId() == Unmapped
-                          || entry.getNameId() < names.Length);
+                Debug.Assert(entry.SourceFileId == Unmapped
+                          || entry.SourceFileId < sources.Length);
+                Debug.Assert(entry.NameId == Unmapped
+                          || entry.NameId < names.Length);
             }
 
             /// <summary>
@@ -481,7 +481,7 @@ namespace ClosureSourceMaps
                         // An unmapped section of the generated file.
                         entry = new UnmappedEntry(vals[0] + previousCol);
                         // Set the values see for the next entry.
-                        previousCol = entry.getGeneratedColumn();
+                        previousCol = entry.GeneratedColumn;
                         return entry;
 
                     case 4:
@@ -491,10 +491,10 @@ namespace ClosureSourceMaps
                                                 vals[2] + previousSrcLine,
                                                 vals[3] + previousSrcColumn);
                         // Set the values see for the next entry.
-                        previousCol = entry.getGeneratedColumn();
-                        previousSrcId = entry.getSourceFileId();
-                        previousSrcLine = entry.getSourceLine();
-                        previousSrcColumn = entry.getSourceColumn();
+                        previousCol = entry.GeneratedColumn;
+                        previousSrcId = entry.SourceFileId;
+                        previousSrcLine = entry.SourceLine;
+                        previousSrcColumn = entry.SourceColumn;
                         return entry;
 
                     case 5:
@@ -506,11 +506,11 @@ namespace ClosureSourceMaps
                                               vals[3] + previousSrcColumn,
                                               vals[4] + previousNameId);
                         // Set the values see for the next entry.
-                        previousCol = entry.getGeneratedColumn();
-                        previousSrcId = entry.getSourceFileId();
-                        previousSrcLine = entry.getSourceLine();
-                        previousSrcColumn = entry.getSourceColumn();
-                        previousNameId = entry.getNameId();
+                        previousCol = entry.GeneratedColumn;
+                        previousSrcId = entry.SourceFileId;
+                        previousSrcLine = entry.SourceLine;
+                        previousSrcColumn = entry.SourceColumn;
+                        previousNameId = entry.NameId;
                         return entry;
 
                     default:
@@ -586,7 +586,7 @@ namespace ClosureSourceMaps
         /// </summary>
         private int compareEntry(List<IEntry> entries, int entry, int target) 
         {
-            return entries[entry].getGeneratedColumn() - target;
+            return entries[entry].GeneratedColumn - target;
         }
         
         /// <summary>
@@ -613,7 +613,7 @@ namespace ClosureSourceMaps
         /// </summary>
         private OriginalMapping getOriginalMappingForEntry(IEntry entry) 
         {
-            if (entry.getSourceFileId() == Unmapped) 
+            if (entry.SourceFileId == Unmapped) 
             {
                 return null;
             } 
@@ -621,12 +621,12 @@ namespace ClosureSourceMaps
             {
                 // Adjust the line/column here to be start at 1.
                 Builder x = OriginalMapping.newBuilder()
-                .setOriginalFile(sources[entry.getSourceFileId()])
-                .setLineNumber(entry.getSourceLine() + 1)
-                .setColumnPosition(entry.getSourceColumn() + 1);
-                if (entry.getNameId() != Unmapped) 
+                .setOriginalFile(sources[entry.SourceFileId])
+                .setLineNumber(entry.SourceLine + 1)
+                .setColumnPosition(entry.SourceColumn + 1);
+                if (entry.NameId != Unmapped) 
                 {
-                    x.setIdentifier(names[entry.getNameId()]);
+                    x.setIdentifier(names[entry.NameId]);
                 }
                 return x.build();
             }
@@ -650,10 +650,10 @@ namespace ClosureSourceMaps
                 {
                     foreach (IEntry entry in entries) 
                     {
-                        if (entry.getSourceFileId() != Unmapped
-                            && entry.getSourceLine() != Unmapped) 
+                        if (entry.SourceFileId != Unmapped
+                            && entry.SourceLine != Unmapped) 
                         {
-                            string originalFile = sources[entry.getSourceFileId()];
+                            string originalFile = sources[entry.SourceFileId];
 
                             if (!reverseSourceMapping.ContainsKey(originalFile)) 
                             {
@@ -665,7 +665,7 @@ namespace ClosureSourceMaps
                             Dictionary<int, List<OriginalMapping>> lineToCollectionMap =
                                 reverseSourceMapping[originalFile]  ;
 
-                            int sourceLine = entry.getSourceLine();
+                            int sourceLine = entry.SourceLine;
 
                             if (!lineToCollectionMap.ContainsKey(sourceLine)) 
                             {
@@ -677,7 +677,7 @@ namespace ClosureSourceMaps
                                 lineToCollectionMap[sourceLine];
 
                             Builder builder = OriginalMapping.newBuilder().setLineNumber(
-                                targetLine).setColumnPosition(entry.getGeneratedColumn());
+                                targetLine).setColumnPosition(entry.GeneratedColumn);
 
                             mappings.Add(builder.build());
                         }
@@ -723,11 +723,31 @@ namespace ClosureSourceMaps
         /// </summary>
         private interface IEntry 
         {
-            int getGeneratedColumn();
-            int getSourceFileId();
-            int getSourceLine();
-            int getSourceColumn();
-            int getNameId();
+            int GeneratedColumn
+            {
+                get;
+                set;
+            }
+            int SourceFileId
+            {
+                get;
+                set;
+            }
+            int SourceLine
+            {
+                get;
+                set;
+            }
+            int SourceColumn
+            {
+                get;
+                set;
+            }
+            int NameId
+            {
+                get;
+                set;
+            }
         }
 
         /// <summary>
@@ -743,29 +763,44 @@ namespace ClosureSourceMaps
                 this.column = column;
             }
 
-            public override int getGeneratedColumn() 
+            public override int GeneratedColumn 
             {
-                return column;
+                get
+                {
+                    return column;
+                }
             }
 
-            public override int getSourceFileId() 
+            public override int SourceFileId 
             {
-                return Unmapped;
+                get
+                {
+                    return Unmapped;
+                }
             }
 
-            public override int getSourceLine() 
+            public override int SourceLine 
             {
-                return Unmapped;
+                get
+                {
+                    return Unmapped;
+                }
             }
 
-            public override int getSourceColumn() 
+            public override int SourceColumn 
             {
-                return Unmapped;
+                get
+                {
+                    return Unmapped;
+                }
             }
 
-            public override int getNameId() 
+            public override int NameId 
             {
-                return Unmapped;
+                get
+                {
+                    return Unmapped;
+                }
             }
         }
 
@@ -859,7 +894,7 @@ namespace ClosureSourceMaps
                         if (pending) 
                         {
                             FilePosition endPosition = new FilePosition(
-                                i, entry.getGeneratedColumn());
+                                i, entry.GeneratedColumn);
                             visitor.visit(
                                         sourceName,
                                         symbolName,
@@ -869,15 +904,15 @@ namespace ClosureSourceMaps
                             pending = false;
                         }
 
-                        if (entry.getSourceFileId() != Unmapped) 
+                        if (entry.SourceFileId != Unmapped) 
                         {
                             pending = true;
-                            sourceName = sources[entry.getSourceFileId()];
-                            symbolName = (entry.getNameId() != Unmapped) ? names[entry.getNameId()] : null;
+                            sourceName = sources[entry.SourceFileId];
+                            symbolName = (entry.NameId != Unmapped) ? names[entry.NameId] : null;
                             sourceStartPosition = new FilePosition(
-                                                    entry.getSourceLine(), entry.getSourceColumn());
+                                                    entry.SourceLine, entry.SourceColumn);
                             startPosition = new FilePosition(
-                                                    i, entry.getGeneratedColumn());
+                                                    i, entry.GeneratedColumn);
                         }
                     }
                 }
