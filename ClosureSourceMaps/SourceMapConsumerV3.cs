@@ -177,13 +177,11 @@ namespace ClosureSourceMaps
 
         private int getInt(JObject sourceMapRoot, string key)
         {
-            Debug.Assert(sourceMapRoot[key].GetType() == typeof(int));
             return (int) sourceMapRoot[key];
         }
 
         private string getString(JObject sourceMapRoot, string key)
         {
-            Debug.Assert(sourceMapRoot[key].GetType() == typeof(string));
             return (string) sourceMapRoot[key];
         }
 
@@ -261,8 +259,8 @@ namespace ClosureSourceMaps
                 try 
                 {
                     generator.AppendTo(sb, file);
-                } 
-                catch (IOException e) 
+                }
+                catch (InvalidOperationException e) 
                 {
                     // Can't happen.
                     throw new Exception("Runtime exception", e);
@@ -270,7 +268,7 @@ namespace ClosureSourceMaps
 
                 Parse(sb.ToString());
             }
-            catch (IOException ex) 
+            catch (InvalidOperationException ex) 
             {
                 throw new SourceMapParseException("IO exception: " + ex);
             } 
@@ -373,7 +371,7 @@ namespace ClosureSourceMaps
             string[] result = new string[len];
             for(int i = 0; i < len; i++) 
             {
-                result[i] = array[i].ToString();
+                result[i] = (string) array[i];
             }
             return result;
         }
@@ -514,7 +512,7 @@ namespace ClosureSourceMaps
                         return entry;
 
                     default:
-                        throw new InvalidOperationException("Unexpected number of values for entry:" + entryValues);
+                        throw new FormatException("Unexpected number of values for entry:" + entryValues);
                 }
             }
 
@@ -657,7 +655,6 @@ namespace ClosureSourceMaps
 
                             if (!reverseSourceMapping.ContainsKey(originalFile)) 
                             {
-                                #warning HashMap was used
                                 reverseSourceMapping.Add(originalFile,
                                 new Dictionary<int, List<OriginalMapping>>());
                             }

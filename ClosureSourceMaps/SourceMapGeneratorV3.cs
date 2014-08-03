@@ -830,7 +830,7 @@ namespace ClosureSourceMaps
                 }
                 else
                 {
-                    throw new IOException("Unexpected section type");
+                    throw new InvalidOperationException("Unexpected section type");
                 }
                 output.Append("\n}");
             }

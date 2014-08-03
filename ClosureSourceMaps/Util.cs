@@ -161,8 +161,8 @@ namespace ClosureSourceMaps
             try 
             {
                 appendHexJavaScriptRepresentation(sb, (int)c);
-            } 
-            catch (IOException ex) 
+            }
+            catch (InvalidOperationException ex) 
             {
                 // StringBuilder does not throw IOException.
                 throw new Exception("Runtime exception", ex);

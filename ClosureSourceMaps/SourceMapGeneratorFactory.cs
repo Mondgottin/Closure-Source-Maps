@@ -55,7 +55,7 @@ namespace ClosureSourceMaps
                 case SourceMapFormat.V3:
                     return new SourceMapGeneratorV3();
                 default:
-                    throw new InvalidOperationException("unsupported source map format");
+                    throw new NotSupportedException("unsupported source map format");
             }
         }
     }

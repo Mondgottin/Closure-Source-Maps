@@ -9,15 +9,15 @@ namespace ClosureSourceMaps
     class OriginalMapping
     {
         // The original source file.
-        private string originalFile = "1";
+        private string originalFile;    // "1";
 
         // The line in the original file.
-        private int lineNumber = 2;
+        private int lineNumber;    // 2;
 
         // The column number on the line.
-        private int columnPosition = 3;
+        private int columnPosition;    // 3;
 
         // The original name of the identifier.
-        private string identifier = "4";
+        private string identifier;    // "4";
     }
 }
