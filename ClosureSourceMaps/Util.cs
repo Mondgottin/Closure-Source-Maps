@@ -21,6 +21,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
 using System.Exception;
+using System.IO;
 
 /**
  * @author johnlenz@google.com (John Lenz)
@@ -37,7 +38,7 @@ namespace ClosureSourceMaps
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        static string escapeString(string s) 
+        public static string escapeString(string s) 
         {
             return escapeString(s, '"',  "\\\"", "\'", "\\\\", null);
         }
@@ -52,7 +53,7 @@ namespace ClosureSourceMaps
         /// <param name="backslashEscape"></param>
         /// <param name="outputCharsetEncoder"></param>
         /// <returns></returns>
-        static string escapeString(string s, char quote, string doublequoteEscape,
+        internal static string escapeString(string s, char quote, string doublequoteEscape,
                                    string singlequoteEscape, string backslashEscape,
                                    Encoding outputCharsetEncoder)
         {
@@ -160,12 +161,11 @@ namespace ClosureSourceMaps
             try 
             {
                 appendHexJavaScriptRepresentation(sb, (int)c);
-            } 
-            catch (Exception ex) 
+            }
+            catch (InvalidOperationException ex) 
             {
                 // StringBuilder does not throw IOException.
-                #warning Clarify an exception
-                throw ex;
+                throw new Exception("Runtime exception", ex);
             }
         }
 

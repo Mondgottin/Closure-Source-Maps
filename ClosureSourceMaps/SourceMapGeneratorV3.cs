@@ -48,25 +48,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Diagnostics;
+using System.IO;
 
 namespace ClosureSourceMaps
 {
-    public static class Preconditions
-    {
-        public Preconditions() {}
-        public static void CheckState(bool expression)
-        {
-            if (!expression)
-                throw new Exception();
-            
-            return;
-        }
-        public static void CheckState(bool expression, string errorMessage)
-        {
-
-        }
-    }
-
     class SourceMapGeneratorV3 : ISourceMapGenerator
     {
         /// <summary>
@@ -93,7 +80,7 @@ namespace ClosureSourceMaps
         /// <summary>
         /// A pre-order traversal ordered list of mappings stored in this map.
         /// </summary>
-        private List<Mapping> mappings = new List<Mapping>();
+        private static List<Mapping> mappings = new List<Mapping>();
 
         /// <summary>
         /// A map of source names to source name index.
@@ -131,7 +118,7 @@ namespace ClosureSourceMaps
         /// generated the compiled source file by the addition of a
         /// an output wrapper prefix.
         /// </summary>
-        private FilePosition prefixPosition = new FilePosition(0, 0);
+        private static FilePosition prefixPosition = new FilePosition(0, 0);
 
         /// <summary>
         /// A list of extensions to be added to sourcemap. The value is a object
@@ -208,8 +195,8 @@ namespace ClosureSourceMaps
         /// <param name="offsetIndex">The column index of the current character being printed.</param>
         public override void SetStartingPosition(int offsetLine, int offsetIndex)
         {
-            Preconditions.CheckState(offsetLine >= 0);
-            Preconditions.CheckState(offsetIndex >= 0);
+            Debug.Assert(offsetLine >= 0);
+            Debug.Assert(offsetIndex >= 0);
             offsetPosition = new FilePosition(offsetLine, offsetIndex);
         }
 
@@ -261,21 +248,21 @@ namespace ClosureSourceMaps
 
             // Create the new mapping.
             Mapping mapping = new Mapping();
-            mapping.sourceFile = sourceName;
-            mapping.originalPosition = sourceStartPosition;
-            mapping.originalName = symbolName.Value;
-            mapping.startPosition = adjustedStart;
-            mapping.endPosition = adjustedEnd;
+            mapping.SourceFile = sourceName;
+            mapping.OriginalPosition = sourceStartPosition;
+            mapping.OriginalName = symbolName.Value;
+            mapping.StartPosition = adjustedStart;
+            mapping.EndPosition = adjustedEnd;
 
             // Validate the mappings are in a proper order.
             if (lastMapping != null) 
             {
-                int lastLine = lastMapping.startPosition.Line;
-                int lastColumn = lastMapping.startPosition.Column;
-                int nextLine = mapping.startPosition.Line;
-                int nextColumn = mapping.startPosition.Column;
+                int lastLine = lastMapping.StartPosition.Line;
+                int lastColumn = lastMapping.StartPosition.Column;
+                int nextLine = mapping.StartPosition.Line;
+                int nextColumn = mapping.StartPosition.Column;
 
-                Preconditions.CheckState(nextLine > lastLine || (nextLine == lastLine && nextColumn >= lastColumn),
+                Debug.Assert(nextLine > lastLine || (nextLine == lastLine && nextColumn >= lastColumn),
                                          string.Format("Incorrect source mappings order, previous : ({0},{1})\n"
                                          + "new : ({2},{3})\nnode : %s",
                                          lastLine, lastColumn, nextLine, nextColumn));
@@ -285,7 +272,7 @@ namespace ClosureSourceMaps
             mappings.Add(mapping);
         }
 
-        class ConsumerEntryVisitor: EntryVisitor 
+        class ConsumerEntryVisitor: SourceMapConsumerV3.EntryVisitor 
         {
             public override void Visit(string sourceName, string symbolName, FilePosition sourceStartPosition,
                                        FilePosition startPosition, FilePosition endPosition) 
@@ -319,23 +306,23 @@ namespace ClosureSourceMaps
         /// <param name="column">The column offset.</param>
         /// <param name="mapSectionContents">The map section to be appended.</param>
         /// <param name="mergeAction">The merge action for conflicting extensions.</param>
-        public void MergeMapSection(int line, int column, string mapSectionContents, ExtensionMergeAction mergeAction)
+        public void MergeMapSection(int line, int column, string mapSectionContents, IExtensionMergeAction mergeAction)
         {
             SetStartingPosition(line, column);
             SourceMapConsumerV3 section = new SourceMapConsumerV3();
             section.Parse(mapSectionContents);
             section.VisitMappings(new ConsumerEntryVisitor());
-            for (Entry<string, object> entry : section.getExtensions().entrySet())
+            foreach (KeyValuePair<string, object> kvp in section.getExtensions())
             {
-                string extensionKey = entry.getKey();
+                string extensionKey = kvp.Key;
                 if (extensions.ContainsKey(extensionKey)) 
                 {
-                    extensions.Add(extensionKey, mergeAction.merge(extensionKey, extensions[extensionKey],
-                                   entry.getValue()));
+                    extensions.Add(extensionKey, mergeAction.Merge(extensionKey, extensions[extensionKey],
+                                   kvp.Value));
                 }
                 else 
                 {
-                    extensions.Add(extensionKey, entry.getValue());
+                    extensions.Add(extensionKey, kvp.Value);
                 }
             }
         }     
@@ -370,18 +357,18 @@ namespace ClosureSourceMaps
         /// </summary>
         /// <param name="output"></param>
         /// <param name="name"></param>
-        public override void AppendTo(Appendable output, string name)
+        public override void AppendTo(StringBuilder output, string name)
         {
             int maxLine = prepMappings();
 
             // Add the header fields.
-            output.append("{\n");
+            output.Append("{\n");
             appendFirstField(output, "version", "3");
             appendField(output, "file", escapeString(name));
-            appendField(output, "lineCount", String.valueOf(maxLine + 1));
+            appendField(output, "lineCount", (maxLine + 1).ToString());
 
             //optional source root
-            if (this.sourceRootPath != null && !this.sourceRootPath.isEmpty()) 
+            if (!String.IsNullOrEmpty(this.sourceRootPath)) 
             {
                 appendField(output, "sourceRoot", escapeString(this.sourceRootPath));
             }
@@ -389,37 +376,44 @@ namespace ClosureSourceMaps
             // Add the mappings themselves.
             appendFieldStart(output, "mappings");
             // out.append("[");
-            (new LineMapper(output)).appendLineMappings();
+            (new LineMapper(output)).AppendLineMappings();
             // out.append("]");
             appendFieldEnd(output);
 
             // Files names
             appendFieldStart(output, "sources");
-            output.append("[");
+            output.Append("[");
             addSourceNameMap(output);
-            output.append("]");
+            output.Append("]");
             appendFieldEnd(output);
 
             // Files names
             appendFieldStart(output, "names");
-            output.append("[");
+            output.Append("[");
             addSymbolNameMap(output);
-            output.append("]");
+            output.Append("]");
             appendFieldEnd(output);
 
             // Extensions, only if there is any
-            for (String key : this.extensions.keySet())
+            foreach (string key in this.extensions.Keys)
             {
-                Object objValue = this.extensions[key];
-                String value = new String(objValue.toString());
-                if (objValue instanceof String)
+                object objValue = this.extensions[key];
+                StringBuilder value = new StringBuilder(objValue.ToString());
+                if (objValue is string)
                 {
-                    value = JsonObject.quote(value);
+                    value = quote(value);
                 }
-                appendField(output, key, value);
+                appendField(output, key, value.ToString());
             }
 
-            output.append("\n}\n");
+            output.Append("\n}\n");
+        }
+
+        private StringBuilder quote(StringBuilder str)
+        {
+            str.Insert(0, "\"");
+            str.Append("\"");
+            return str;
         }
 
         /// <summary>
@@ -491,7 +485,7 @@ namespace ClosureSourceMaps
         /// Writes the source name map to 'output'.
         /// </summary>
         /// <param name="output"></param>
-        private void addSourceNameMap(Appendable output)
+        private void addSourceNameMap(StringBuilder output)
         {
             addNameMap(output, sourceFileMap);
         }
@@ -500,22 +494,22 @@ namespace ClosureSourceMaps
         /// Writes the source name map to 'output'.
         /// </summary>
         /// <param name="output"></param>
-        private void addSymbolNameMap(Appendable output)
+        private void addSymbolNameMap(StringBuilder output)
         {
             addNameMap(output, originalNameMap);
         }
 
-        private void addNameMap(Appendable output, Map<String, Integer> map)
+        private void addNameMap(StringBuilder output, Dictionary<string, int> map)
         {
             int i = 0;
-            for (Entry<String, Integer> entry : map.entrySet())
+            foreach (KeyValuePair<string, int> kvp in map)
             {
-                string key = entry.getKey();
+                string key = kvp.Key;
                 if (i != 0)
                 {
-                    output.append(",");
+                    output.Append(",");
                 }
-                output.append(escapeString(key));
+                output.Append(escapeString(key));
                 ++i;
             }
         }
@@ -532,34 +526,35 @@ namespace ClosureSourceMaps
 
         // Source map field helpers.
 
-        private static void appendFirstField(Appendable output, string name, CharSequence value)
+        private static void appendFirstField(StringBuilder output, string name, string value)
         {
-            output.append("\"");
-            output.append(name);
-            output.append("\"");
-            output.append(":");
-            output.append(value);
+            output.Append("\"");
+            output.Append(name);
+            output.Append("\"");
+            output.Append(":");
+            output.Append(value);
         }
 
-        private static void appendField(Appendable output, string name, CharSequence value)
+        private static void appendField(StringBuilder output, string name, string value)
         {
-            output.append(",\n");
-            output.append("\"");
-            output.append(name);
-            output.append("\"");
-            output.append(":");
-            output.append(value);
+            output.Append(",\n");
+            output.Append("\"");
+            output.Append(name);
+            output.Append("\"");
+            output.Append(":");
+            output.Append(value);
         }
 
-        private static void appendFieldStart(Appendable output, string name)
+        private static void appendFieldStart(StringBuilder output, string name)
         {
             appendField(output, name, "");
         }
 
-        @SuppressWarnings("unused")
-        private static void appendFieldEnd(Appendable output)
+        #pragma warning disable 0169
+        private static void appendFieldEnd(StringBuilder output)
         {
         }
+        #pragma warning restore 0169
 
         /// <summary>
         /// Assigns sequential ids to used mappings, and returns the last line mapped.
@@ -573,18 +568,18 @@ namespace ClosureSourceMaps
             // Renumber used mappings and keep track of the last line.
             int id = 0;
             int maxLine = 0;
-            for (Mapping m : mappings)
+            foreach (Mapping m in mappings)
             {
-                if (m.used)
+                if (m.Used)
                 {
-                    m.id = id++;
-                    int endPositionLine = m.endPosition.getLine();
+                    m.Id = id++;
+                    int endPositionLine = m.EndPosition.Line;
                     maxLine = Math.Max(maxLine, endPositionLine);
                 }
             }
 
             // Adjust for the prefix.
-            return maxLine + prefixPosition.getLine();
+            return maxLine + prefixPosition.Line;
         }
 
         /// <summary>
@@ -596,42 +591,42 @@ namespace ClosureSourceMaps
             /// <summary>
             /// A unique ID for this mapping for record keeping purposes.
             /// </summary>
-            public int id = Unmapped;
+            public int Id = Unmapped;
 
             /// <summary>
             /// The source file index.
             /// </summary>
-            public string sourceFile;
+            public string SourceFile;
 
             /// <summary>
             /// The position of the code in the input source file. Both
             /// the line number and the character index are indexed by
             /// 1 for legacy reasons via the Rhino Node class.
             /// </summary>
-            public FilePosition originalPosition;
+            public FilePosition OriginalPosition;
             
             /// <summary>
             /// The starting position of the code in the generated source
             /// file which this mapping represents. Indexed by 0.
             /// </summary>
-            public FilePosition startPosition;
+            public FilePosition StartPosition;
 
             /// <summary>
             /// The ending position of the code in the generated source
             /// file which this mapping represents. Indexed by 0.
             /// </summary>
-            public FilePosition endPosition;
+            public FilePosition EndPosition;
 
             /// <summary>
             /// The original name of the token found at the position
             /// represented by this mapping (if any).
             /// </summary>
-            public string originalName;
+            public string OriginalName;
 
             /// <summary>
             /// Whether the mapping is actually used by the source map.
             /// </summary>
-            public bool used = false;
+            public bool Used = false;
         }
 
         /// <summary>
@@ -643,7 +638,7 @@ namespace ClosureSourceMaps
             {
                 if (m != null)
                 {
-                    m.used = true;
+                    m.Used = true;
                 }
             }
         }
@@ -670,40 +665,40 @@ namespace ClosureSourceMaps
             private int line;
             private int col;
 
-            MappingTraversal() {}
+            public MappingTraversal() {}
 
             // Append the line mapping entries.
-            void traverse(IMappingVisitor v)
+            public void traverse(IMappingVisitor v)
             {
                 // The mapping list is ordered as a pre-order traversal.  The mapping
                 // positions give us enough information to rebuild the stack and this
                 // allows the building of the source map in O(n) time.
-                Deque<Mapping> stack = new ArrayDeque<Mapping>();
-                for (Mapping m : mappings)
+                Stack<Mapping> stack = new Stack<Mapping>();
+                foreach (Mapping m in mappings)
                 {
                     // Find the closest ancestor of the current mapping:
                     // An overlapping mapping is an ancestor of the current mapping, any
                     // non-overlapping mappings are siblings (or cousins) and must be
                     // closed in the reverse order of when they encountered.
-                    while (!stack.isEmpty() && !isOverlapped(stack.peek(), m))
+                    while (stack.Count != 0 && !isOverlapped(stack.Peek(), m))
                     {
-                        Mapping previous = stack.pop();
+                        Mapping previous = stack.Pop();
                         maybeVisit(v, previous);
                     }
 
                     // Any gaps between the current line position and the start of the
                     // current mapping belong to the parent.
-                    Mapping parent = stack.peek();
+                    Mapping parent = stack.Peek();
                     maybeVisitParent(v, parent, m);
 
-                    stack.push(m);
+                    stack.Push(m);
                 }
 
                 // There are no more children to be had, simply close the remaining
                 // mappings in the reverse order of when they encountered.
-                while (!stack.isEmpty())
+                while (stack.Count != 0)
                 {
-                    Mapping m = stack.pop();
+                    Mapping m = stack.Pop();
                     maybeVisit(v, m);
                 }
             }
@@ -730,10 +725,10 @@ namespace ClosureSourceMaps
             private bool isOverlapped(Mapping m1, Mapping m2)
             {
                 // No need to use adjusted values here, relative positions are sufficient.
-                int l1 = m1.endPosition.Line;
-                int l2 = m2.startPosition.Line;
-                int c1 = m1.endPosition.Column;
-                int c2 = m2.startPosition.Column;
+                int l1 = m1.EndPosition.Line;
+                int l2 = m2.StartPosition.Line;
+                int c1 = m1.EndPosition.Column;
+                int c2 = m2.StartPosition.Column;
 
                 return (l1 == l2 && c1 >= c2) || l1 > l2;
             }
@@ -744,8 +739,8 @@ namespace ClosureSourceMaps
             /// </summary>
             private void maybeVisit(IMappingVisitor v, Mapping m)
             {
-                int nextLine = getAdjustedLine(m.endPosition);
-                int nextCol = getAdjustedCol(m.endPosition);
+                int nextLine = getAdjustedLine(m.EndPosition);
+                int nextCol = getAdjustedCol(m.EndPosition);
             
                 // If this anything remaining in this mapping beyond the
                 // current line and column position, write it out now.
@@ -760,11 +755,11 @@ namespace ClosureSourceMaps
             /// </summary>
             private void maybeVisitParent(IMappingVisitor v, Mapping parent, Mapping m)
             {
-                int nextLine = getAdjustedLine(m.startPosition);
-                int nextCol = getAdjustedCol(m.startPosition);
+                int nextLine = getAdjustedLine(m.StartPosition);
+                int nextCol = getAdjustedCol(m.StartPosition);
 
                 // If the previous value is null, no mapping exists.
-                Preconditions.CheckState(line < nextLine || col <= nextCol);
+                Debug.Assert(line < nextLine || col <= nextCol);
                 if (line < nextLine || (line == nextLine && col < nextCol))
                 {
                     visit(v, parent, nextLine, nextCol);
@@ -777,13 +772,13 @@ namespace ClosureSourceMaps
             /// </summary>
             private void visit(IMappingVisitor v, Mapping m, int nextLine, int nextCol)
             {
-                Preconditions.CheckState(line <= nextLine);
-                Preconditions.CheckState(line < nextLine || col < nextCol);
+                Debug.Assert(line <= nextLine);
+                Debug.Assert(line < nextLine || col < nextCol);
 
                 if (line == nextLine && col == nextCol)
                 {
                     // Nothing to do.
-                    Preconditions.CheckState(false);
+                    Debug.Assert(false);
                     return;
                 }
 
@@ -801,18 +796,18 @@ namespace ClosureSourceMaps
         /// <param name="name">The name of the generated source file that this source map
         ///  represents.</param>
         /// <param name="sections">An ordered list of map sections to include in the index.</param>
-        public override void AppendIndexMapTo(Appendable output, string name, List<SourceMapSection> sections)
+        public override void AppendIndexMapTo(StringBuilder output, string name, List<SourceMapSection> sections)
         {
             // Add the header fields.
-            output.append("{\n");
+            output.Append("{\n");
             appendFirstField(output, "version", "3");
             appendField(output, "file", escapeString(name));
 
             // Add the line character maps.
             appendFieldStart(output, "sections");
-            output.append("[\n");
+            output.Append("[\n");
             bool first = true;
-            for (SourceMapSection section : sections)
+            foreach (SourceMapSection section in sections)
             {
                 if (first)
                 {
@@ -820,9 +815,9 @@ namespace ClosureSourceMaps
                 }
                 else
                 {
-                    output.append(",\n");
+                    output.Append(",\n");
                 }
-                output.append("{\n");
+                output.Append("{\n");
                 appendFirstField(output, "offset",
                 offsetValue(section.Line, section.Column));
                 if (section.Type == SourceMapSection.SectionType.Url)
@@ -835,25 +830,25 @@ namespace ClosureSourceMaps
                 }
                 else
                 {
-                    throw new Exception("Unexpected section type");
+                    throw new InvalidOperationException("Unexpected section type");
                 }
-                output.append("\n}");
+                output.Append("\n}");
             }
 
-            output.append("\n]");
+            output.Append("\n]");
             appendFieldEnd(output);
 
-            output.append("\n}\n");
+            output.Append("\n}\n");
         }
 
-        private CharSequence offsetValue(int line, int column)
+        private string offsetValue(int line, int column)
         {
             StringBuilder output = new StringBuilder();
-            output.append("{\n");
-            appendFirstField(output, "line", String.valueOf(line));
-            appendField(output, "column", String.valueOf(column));
-            output.append("\n}");
-            return output;
+            output.Append("{\n");
+            appendFirstField(output, "line", line.ToString());
+            appendField(output, "column", column.ToString());
+            output.Append("\n}");
+            return output.ToString();
         }
 
         private int getSourceId(string sourceName)
@@ -861,7 +856,7 @@ namespace ClosureSourceMaps
             if (sourceName != lastSourceFile)
             {
                 lastSourceFile = sourceName;
-                Integer index = sourceFileMap[sourceName];
+                int index = sourceFileMap[sourceName];
                 if (index != null)
                 {
                     lastSourceFileIndex = index;
@@ -878,7 +873,7 @@ namespace ClosureSourceMaps
         private int getNameId(string symbolName) 
         {
             int originalNameIndex;
-            Integer index = originalNameMap[symbolName];
+            int index = originalNameMap[symbolName];
             if (index != null)
             {
                 originalNameIndex = index;
@@ -894,7 +889,7 @@ namespace ClosureSourceMaps
         private class LineMapper: IMappingVisitor 
         {
             // The destination.
-            private readonly Appendable output;
+            private readonly StringBuilder output;
 
             private int previousLine = -1;
             private int previousColumn = 0;
@@ -905,7 +900,7 @@ namespace ClosureSourceMaps
             private int previousSourceColumn;
             private int previousNameId;
 
-            LineMapper(Appendable output) 
+            public LineMapper(StringBuilder output) 
             {
                 this.output = output;
             }
@@ -925,7 +920,7 @@ namespace ClosureSourceMaps
                     if (previousLine == line) 
                     { 
                         // not the first entry for the line
-                        output.append(',');
+                        output.Append(',');
                     }
                     writeEntry(m, col);
                     previousLine = line;
@@ -952,29 +947,30 @@ namespace ClosureSourceMaps
             /// </summary>
             void writeEntry(Mapping m, int column)
             {
+                SourceMapGeneratorV3 sourceMapGeneratorV3 = new SourceMapGeneratorV3();
                 // The relative generated column number
                 Base64Vlq.Encode(output, column - previousColumn);
                 previousColumn = column;
                 if (m != null) 
                 {
                     // The relative source file id
-                    int sourceId = getSourceId(m.sourceFile);
+                    int sourceId = sourceMapGeneratorV3.getSourceId(m.SourceFile);
                     Base64Vlq.Encode(output, sourceId - previousSourceFileId);
                     previousSourceFileId = sourceId;
 
                     // The relative source file line and column
-                    int srcline = m.originalPosition.Line;
-                    int srcColumn = m.originalPosition.Column;
+                    int srcline = m.OriginalPosition.Line;
+                    int srcColumn = m.OriginalPosition.Column;
                     Base64Vlq.Encode(output, srcline - previousSourceLine);
                     previousSourceLine = srcline;
 
                     Base64Vlq.Encode(output, srcColumn - previousSourceColumn);
                     previousSourceColumn = srcColumn;
 
-                    if (m.originalName != null) 
+                    if (m.OriginalName != null) 
                     {
                         // The relative id for the associated symbol name
-                        int nameId = getNameId(m.originalName);
+                        int nameId = sourceMapGeneratorV3.getNameId(m.OriginalName);
                         Base64Vlq.Encode(output, (nameId - previousNameId));
                         previousNameId = nameId;
                     }
@@ -982,7 +978,7 @@ namespace ClosureSourceMaps
             }
 
             // Append the line mapping entries.
-            void appendLineMappings() 
+            public void AppendLineMappings() 
             {
                 // Start the first line.
                 openLine(true);
@@ -1000,7 +996,7 @@ namespace ClosureSourceMaps
             {
                 if (firstEntry) 
                 {
-                    output.append('\"');
+                    output.Append('\"');
                 }
             }
 
@@ -1009,10 +1005,10 @@ namespace ClosureSourceMaps
             /// </summary>
             private void closeLine(bool finalEntry)
             {
-                output.append(';');
+                output.Append(';');
                 if (finalEntry) 
                 {
-                    output.append('\"');
+                    output.Append('\"');
                 }
             }
         }

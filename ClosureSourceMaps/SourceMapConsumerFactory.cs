@@ -19,6 +19,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Diagnostics;   
 
 // import org.json.JSONException;
 // import org.json.JSONObject;
@@ -38,7 +41,7 @@ namespace ClosureSourceMaps
         /// <summary></summary>
         /// <param name="contents">The string representing the source map file contents.</param>
         /// <returns>The parsed source map.</returns>
-        public static SourceMapping Parse(string contents)
+        public static ISourceMapping Parse(string contents)
         {
             return Parse(contents, null);
         }
@@ -48,7 +51,7 @@ namespace ClosureSourceMaps
         /// <param name="contents">The string representing the source map file contents.</param>
         /// <param name="supplier">A supplier for any referenced maps.</param>
         /// <returns>The parsed source map.</returns>
-        public static SourceMapping Parse(string contents, ISourceMapSupplier supplier)
+        public static ISourceMapping Parse(string contents, ISourceMapSupplier supplier)
         {
             // Version 1, starts with a magic string
             if (contents.StartsWith("/** Begin line maps. **/")) 
@@ -61,15 +64,16 @@ namespace ClosureSourceMaps
                 try 
                 {
                     // Revision 2 and 3, are JSON Objects
-                    JsonObject sourceMapRoot = new JsonObject(contents);
+                    JObject sourceMapRoot = new JObject(contents);
                     // Check basic assertions about the format.
-                    int version = sourceMapRoot.getInt("version");
+                    Debug.Assert(sourceMapRoot["version"].GetType() == typeof(int));
+                    int version = (int) sourceMapRoot["version"];
                     switch (version) 
                     {
                         case 3: 
                         {
                             SourceMapConsumerV3 consumer =  new SourceMapConsumerV3();
-                            consumer.parse(sourceMapRoot, supplier);
+                            consumer.Parse(sourceMapRoot, supplier);
                             return consumer;
                         }
                         default:
@@ -77,7 +81,7 @@ namespace ClosureSourceMaps
                                 "Unknown source map version:" + version);
                     }
                 } 
-                catch (Exception ex) 
+                catch (JsonException ex) 
                 {
                     throw new SourceMapParseException("JSON parse exception: " + ex);
                 }
