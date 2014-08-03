@@ -75,22 +75,22 @@ namespace ClosureSourceMaps
             object Merge(string extensionKey, object currentValue, object newValue);
         }
 
-        private static const int Unmapped = -1;
+        private const int Unmapped = -1;
 
         /// <summary>
         /// A pre-order traversal ordered list of mappings stored in this map.
         /// </summary>
-        private static List<Mapping> mappings = new List<Mapping>();
+        private static readonly List<Mapping> mappings = new List<Mapping>();
 
         /// <summary>
         /// A map of source names to source name index.
         /// </summary>
-        private Dictionary<string, int> sourceFileMap = new Dictionary<string,int>();
+        private readonly Dictionary<string, int> sourceFileMap = new Dictionary<string,int>();
 
         /// <summary>
         /// A map of source names to source name index.
         /// </summary>
-        private Dictionary<string, int> originalNameMap = new Dictionary<string,int>();
+        private readonly Dictionary<string, int> originalNameMap = new Dictionary<string,int>();
 
         /// <summary>
         /// Cache of the last mappings source name.
@@ -206,7 +206,7 @@ namespace ClosureSourceMaps
         /// <param name="startPosition">The position on the starting line.</param>
         /// <param name="endPosition">The position on the ending line.</param>
 
-        public override void AddMapping(string sourceName, string? symbolName,
+        public override void AddMapping(string sourceName, string symbolName,
                                         FilePosition sourceStartPosition, 
                                         FilePosition startPosition, FilePosition endPosition)
         {
@@ -250,7 +250,7 @@ namespace ClosureSourceMaps
             Mapping mapping = new Mapping();
             mapping.SourceFile = sourceName;
             mapping.OriginalPosition = sourceStartPosition;
-            mapping.OriginalName = symbolName.Value;
+            mapping.OriginalName = symbolName;
             mapping.StartPosition = adjustedStart;
             mapping.EndPosition = adjustedEnd;
 
@@ -272,7 +272,7 @@ namespace ClosureSourceMaps
             mappings.Add(mapping);
         }
 
-        class ConsumerEntryVisitor: SourceMapConsumerV3.EntryVisitor 
+        class ConsumerEntryVisitor: SourceMapConsumerV3.IEntryVisitor 
         {
             public override void Visit(string sourceName, string symbolName, FilePosition sourceStartPosition,
                                        FilePosition startPosition, FilePosition endPosition) 

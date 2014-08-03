@@ -20,7 +20,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
-using System.Exception;
 using System.IO;
 
 /**
@@ -145,6 +144,7 @@ namespace ClosureSourceMaps
                                 appendCharAsHex(sb, c);
                             }
                         }
+                        break;
                 }
             }
             sb.Append(quote);

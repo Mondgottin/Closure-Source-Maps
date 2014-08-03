@@ -9,5 +9,9 @@ namespace ClosureSourceMaps
     interface IBuilder
     {
         OriginalMapping build();
+        IBuilder setOriginalFile(string fileName);
+        IBuilder setLineNumber(int lineNumber);
+        IBuilder setColumnPosition(int column);
+        IBuilder setIdentifier(string identifier);
     }
 }

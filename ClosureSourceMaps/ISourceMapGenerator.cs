@@ -32,7 +32,7 @@ namespace ClosureSourceMaps
     /// 
     /// @author johnlenz@google.com (John Lenz)
     /// </summary>
-    interface ISourceMapGenerator
+    public interface ISourceMapGenerator
     {
         /// <summary>
         /// Appends the source map to the given buffer.

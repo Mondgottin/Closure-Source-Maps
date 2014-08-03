@@ -47,7 +47,7 @@ namespace ClosureSourceMaps
     /// </summary>
     class SourceMapConsumerV3 : ISourceMapConsumer, ISourceMappingReversable
     {
-        static const int Unmapped = -1;
+        const int Unmapped = -1;
 
         private static string[] sources;
         private static string[] names;
@@ -378,7 +378,7 @@ namespace ClosureSourceMaps
 
         private class MappingBuilder 
         {
-            private static const int MAX_ENTRY_VALUES = 5;
+            private const int MAX_ENTRY_VALUES = 5;
             private readonly StringCharIterator content;
             private int line = 0;
             private int previousCol = 0;
@@ -618,10 +618,10 @@ namespace ClosureSourceMaps
             else 
             {
                 // Adjust the line/column here to be start at 1.
-                Builder x = OriginalMapping.newBuilder()
-                .setOriginalFile(sources[entry.SourceFileId])
-                .setLineNumber(entry.SourceLine + 1)
-                .setColumnPosition(entry.SourceColumn + 1);
+                IBuilder x = OriginalMapping.newBuilder()
+                    .setOriginalFile(sources[entry.SourceFileId])
+                    .setLineNumber(entry.SourceLine + 1)
+                    .setColumnPosition(entry.SourceColumn + 1);
                 if (entry.NameId != Unmapped) 
                 {
                     x.setIdentifier(names[entry.NameId]);
@@ -673,8 +673,9 @@ namespace ClosureSourceMaps
                             List<OriginalMapping> mappings =
                                 lineToCollectionMap[sourceLine];
 
-                            Builder builder = OriginalMapping.newBuilder().setLineNumber(
-                                targetLine).setColumnPosition(entry.GeneratedColumn);
+                            IBuilder builder = OriginalMapping.newBuilder()
+                                .setLineNumber(targetLine)
+                                .setColumnPosition(entry.GeneratedColumn);
 
                             mappings.Add(builder.build());
                         }
@@ -861,7 +862,7 @@ namespace ClosureSourceMaps
             }
         }
 
-        public static interface EntryVisitor 
+        public interface IEntryVisitor 
         {
             void visit(String sourceName,
                    String symbolName,
@@ -870,7 +871,7 @@ namespace ClosureSourceMaps
                    FilePosition endPosition);
         }
 
-        public void VisitMappings(EntryVisitor visitor) 
+        public void VisitMappings(IEntryVisitor visitor) 
         {
             bool pending = false;
             String sourceName = null;
