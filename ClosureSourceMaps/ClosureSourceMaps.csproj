@@ -41,6 +41,7 @@
     <Compile Include="FilePosition.cs" />
     <Compile Include="ISourceMapGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SourceMapGeneratorV3.cs" />
     <Compile Include="SourceMapLineDecoder.cs" />
     <Compile Include="SourceMapParseException.cs" />
     <Compile Include="SourceMapSection.cs" />
