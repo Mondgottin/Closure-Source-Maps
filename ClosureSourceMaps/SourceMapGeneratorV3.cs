@@ -75,12 +75,12 @@ namespace ClosureSourceMaps
             object Merge(string extensionKey, object currentValue, object newValue);
         }
 
-        private static const int Unmapped = -1;
+        private const int Unmapped = -1;
 
         /// <summary>
         /// A pre-order traversal ordered list of mappings stored in this map.
         /// </summary>
-        private static List<Mapping> mappings = new List<Mapping>();
+        private List<Mapping> mappings = new List<Mapping>();
 
         /// <summary>
         /// A map of source names to source name index.
@@ -312,7 +312,7 @@ namespace ClosureSourceMaps
             SourceMapConsumerV3 section = new SourceMapConsumerV3();
             section.Parse(mapSectionContents);
             section.VisitMappings(new ConsumerEntryVisitor());
-            foreach (KeyValuePair<string, object> kvp in section.getExtensions())
+            foreach (KeyValuePair<string, object> kvp in section.Extensions)
             {
                 string extensionKey = kvp.Key;
                 if (extensions.ContainsKey(extensionKey)) 
@@ -563,7 +563,7 @@ namespace ClosureSourceMaps
         private int prepMappings()
         {
             // Mark any unused mappings.
-            (new MappingTraversal()).traverse(new UsedMappingCheck());
+            (new MappingTraversal(this)).traverse(new UsedMappingCheck());
 
             // Renumber used mappings and keep track of the last line.
             int id = 0;
@@ -664,8 +664,12 @@ namespace ClosureSourceMaps
             // The last line and column written
             private int line;
             private int col;
+            private SourceMapGeneratorV3 parentGenerator;
 
-            public MappingTraversal() {}
+            public MappingTraversal(SourceMapGeneratorV3 parentGenerator) 
+            {
+                this.parentGenerator = parentGenerator;
+            }
 
             // Append the line mapping entries.
             public void traverse(IMappingVisitor v)
@@ -674,7 +678,7 @@ namespace ClosureSourceMaps
                 // positions give us enough information to rebuild the stack and this
                 // allows the building of the source map in O(n) time.
                 Stack<Mapping> stack = new Stack<Mapping>();
-                foreach (Mapping m in mappings)
+                foreach (Mapping m in parentGenerator.mappings)
                 {
                     // Find the closest ancestor of the current mapping:
                     // An overlapping mapping is an ancestor of the current mapping, any
