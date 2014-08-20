@@ -630,7 +630,7 @@ namespace ClosureSourceMaps
             else 
             {
                 // Adjust the line/column here to be start at 1.
-                IBuilder x = OriginalMapping.newBuilder()
+                Builder x = OriginalMapping.newBuilder()
                     .setOriginalFile(sources[entry.SourceFileId])
                     .setLineNumber(entry.SourceLine + 1)
                     .setColumnPosition(entry.SourceColumn + 1);
