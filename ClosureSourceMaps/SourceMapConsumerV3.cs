@@ -24,6 +24,7 @@ using System.Collections;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.IO;
+using Google.ProtocolBuffers;
 
 // import org.json.JSONArray;
 // import org.json.JSONException;
@@ -49,11 +50,11 @@ namespace ClosureSourceMaps
     {
         const int Unmapped = -1;
 
-        private static string[] sources;
-        private static string[] names;
-        private static int lineCount;
+        private string[] sources;
+        private string[] names;
+        private int lineCount;
         // Slots in the lines list will be null if the line does not have any entries.
-        private static List<List<IEntry>> lines = null;
+        private List<List<IEntry>> lines = null;
         /// <summary>
         /// originalFile path ==> original line ==> target mappings.
         /// </summary>
@@ -166,7 +167,7 @@ namespace ClosureSourceMaps
                     }
                 }
 
-                new MappingBuilder(lineMap).build();
+                new MappingBuilder(lineMap, this).Build();
             }
             catch(JsonException ex)
             {
@@ -311,9 +312,12 @@ namespace ClosureSourceMaps
             return getOriginalMappingForEntry(entries[index]);
         }
 
-        public override List<string> getOriginalSources() 
+        public override List<string> OriginalSources 
         {
-            return sources.ToList<string>();
+            get
+            {
+                return sources.ToList<string>();
+            }
         }
 
         public override List<OriginalMapping> getReverseMapping(string originalFile, int line, int column) 
@@ -349,9 +353,12 @@ namespace ClosureSourceMaps
             }
         }
 
-        public string getSourceRoot()
+        public string SourceRoot
         {
-            return this.sourceRoot;
+            get
+            {
+                return this.sourceRoot;
+            }
         }
 
         /// <summary>
@@ -359,9 +366,12 @@ namespace ClosureSourceMaps
         /// in a Map object.
         /// </summary>
         /// <returns>The extension list.</returns>
-        public Dictionary<string, object> getExtensions()
+        public Dictionary<string, object> Extensions
         {
-            return this.extensions;
+            get
+            {
+                return this.extensions;
+            }
         }
 
 
@@ -386,13 +396,15 @@ namespace ClosureSourceMaps
             private int previousSrcLine = 0;
             private int previousSrcColumn = 0;
             private int previousNameId = 0;
+            private SourceMapConsumerV3 parentConsumer;
 
-            public MappingBuilder(string lineMap)
+            public MappingBuilder(string lineMap, SourceMapConsumerV3 parentConsumer)
             {
                 this.content = new StringCharIterator(lineMap);
+                this.parentConsumer = parentConsumer;
             }
 
-            public void build() 
+            public void Build() 
             {
                 int [] temp = new int[MAX_ENTRY_VALUES];
                 List<IEntry> entries = new List<IEntry>();
@@ -414,7 +426,7 @@ namespace ClosureSourceMaps
                         {
                             result = null;
                         }
-                        lines.Add(result);
+                        parentConsumer.lines.Add(result);
                         entries.Clear();
                         line++;
                         previousCol = 0;
@@ -445,11 +457,11 @@ namespace ClosureSourceMaps
             /// <param name="entry"></param>
             private void validateEntry(IEntry entry) 
             {
-                Debug.Assert((lineCount < 0) || (line < lineCount));
+                Debug.Assert((parentConsumer.lineCount < 0) || (line < parentConsumer.lineCount));
                 Debug.Assert(entry.SourceFileId == Unmapped
-                          || entry.SourceFileId < sources.Length);
+                          || entry.SourceFileId < parentConsumer.sources.Length);
                 Debug.Assert(entry.NameId == Unmapped
-                          || entry.NameId < names.Length);
+                          || entry.NameId < parentConsumer.names.Length);
             }
 
             /// <summary>
@@ -626,7 +638,7 @@ namespace ClosureSourceMaps
                 {
                     x.setIdentifier(names[entry.NameId]);
                 }
-                return x.build();
+                return x.Build();
             }
         }
 
