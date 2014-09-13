@@ -7,13 +7,13 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from: Test/test.proto
+// Option: light framework (CF/Silverlight) enabled
+    
+// Generated from: mapping.proto
 // Note: requires additional types generated from: google/protobuf/csharp_options.proto
-using Google.ProtocolBuffers;
-
-namespace sourcemap
+namespace ClosureSourceMaps
 {
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"LineMapping")]
+  [global::ProtoBuf.ProtoContract(Name=@"LineMapping")]
   public partial class LineMapping : global::ProtoBuf.IExtensible
   {
     public LineMapping() {}
@@ -34,10 +34,10 @@ namespace sourcemap
       get { return _column_position; }
       set { _column_position = value; }
     }
-    private sourcemap.OriginalMapping _original_mapping = null;
+    private OriginalMapping _original_mapping = null;
     [global::ProtoBuf.ProtoMember(3, IsRequired = false, Name=@"original_mapping", DataFormat = global::ProtoBuf.DataFormat.Default)]
     [global::System.ComponentModel.DefaultValue(null)]
-    public sourcemap.OriginalMapping original_mapping
+    public OriginalMapping original_mapping
     {
       get { return _original_mapping; }
       set { _original_mapping = value; }
@@ -47,7 +47,7 @@ namespace sourcemap
       { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
   }
   
-  [global::System.Serializable, global::ProtoBuf.ProtoContract(Name=@"OriginalMapping")]
+  [global::ProtoBuf.ProtoContract(Name=@"OriginalMapping")]
   public partial class OriginalMapping : global::ProtoBuf.IExtensible
   {
     public OriginalMapping() {}
