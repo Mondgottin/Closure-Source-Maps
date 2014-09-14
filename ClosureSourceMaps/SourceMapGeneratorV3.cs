@@ -376,7 +376,7 @@ namespace ClosureSourceMaps
             // Add the mappings themselves.
             appendFieldStart(output, "mappings");
             // out.append("[");
-            (new LineMapper(output)).AppendLineMappings();
+            (new LineMapper(output, this)).AppendLineMappings();
             // out.append("]");
             appendFieldEnd(output);
 
@@ -904,9 +904,12 @@ namespace ClosureSourceMaps
             private int previousSourceColumn;
             private int previousNameId;
 
-            public LineMapper(StringBuilder output) 
+            private SourceMapGeneratorV3 parentGenerator;
+
+            public LineMapper(StringBuilder output, SourceMapGeneratorV3 parentGenerator) 
             {
                 this.output = output;
+                this.parentGenerator = parentGenerator;
             }
 
             /// <summary>
@@ -987,7 +990,7 @@ namespace ClosureSourceMaps
                 // Start the first line.
                 openLine(true);
 
-                (new MappingTraversal()).traverse(this);
+                (new MappingTraversal(this.parentGenerator)).traverse(this);
 
                 // And close the final line.
                 closeLine(true);

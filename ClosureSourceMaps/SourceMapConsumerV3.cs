@@ -24,7 +24,8 @@ using System.Collections;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.IO;
-using Google.ProtocolBuffers;
+
+using ProtoBuf;
 
 // import org.json.JSONArray;
 // import org.json.JSONException;
@@ -630,15 +631,24 @@ namespace ClosureSourceMaps
             else 
             {
                 // Adjust the line/column here to be start at 1.
+                /*
                 Builder x = OriginalMapping.newBuilder()
                     .setOriginalFile(sources[entry.SourceFileId])
                     .setLineNumber(entry.SourceLine + 1)
                     .setColumnPosition(entry.SourceColumn + 1);
+                 */
+                var x = new OriginalMapping
+                {
+                    original_file = sources[entry.SourceFileId],
+                    line_number = entry.SourceLine + 1,
+                    column_position = entry.SourceColumn + 1
+                };
                 if (entry.NameId != Unmapped) 
                 {
-                    x.setIdentifier(names[entry.NameId]);
+                    //x.setIdentifier(names[entry.NameId]);
+                    x.identifier = names[entry.NameId];
                 }
-                return x.Build();
+                return x; //x.Build();
             }
         }
 
@@ -685,11 +695,15 @@ namespace ClosureSourceMaps
                             List<OriginalMapping> mappings =
                                 lineToCollectionMap[sourceLine];
 
-                            IBuilder builder = OriginalMapping.newBuilder()
-                                .setLineNumber(targetLine)
-                                .setColumnPosition(entry.GeneratedColumn);
 
-                            mappings.Add(builder.build());
+                            var mapping = new OriginalMapping
+                            {
+                                line_number = targetLine,
+                                column_position = entry.GeneratedColumn
+                            };
+                            
+
+                            mappings.Add(mapping);
                         }
                     }
                 }

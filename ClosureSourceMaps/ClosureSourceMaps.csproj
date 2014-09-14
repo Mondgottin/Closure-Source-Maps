@@ -37,7 +37,6 @@
     <Compile Include="Base64Vlq.cs" />
     <Compile Include="FilePosition.cs" />
     <Compile Include="Mapping.cs" />
-    <Compile Include="OriginalMapping.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ISourceMapConsumer.cs" />
     <Compile Include="SourceMapConsumerFactory.cs" />
@@ -60,12 +59,12 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.6.0.4\lib\portable-net45+wp80+win8+wpa81\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net">
+      <HintPath>bin\Debug\protobuf-net.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\packages\protobuf-csharp-port-fa9349a386b1\src\ProtocolBuffers\ProtocolBuffers.csproj">
-      <Project>{6908bdce-d925-43f3-94ac-a531e6df2591}</Project>
-      <Name>ProtocolBuffers</Name>
-    </ProjectReference>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
