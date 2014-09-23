@@ -49,7 +49,7 @@ namespace ClosureSourceMaps
     /// </summary>
     class SourceMapConsumerV3 : ISourceMapConsumer, ISourceMappingReversable
     {
-        static const int Unmapped = -1;
+        public const int Unmapped = -1;
 
         private string[] sources;
         private string[] names;
@@ -176,7 +176,6 @@ namespace ClosureSourceMaps
             }
         }
 
-
         private int getInt(JObject sourceMapRoot, string key)
         {
             return (int) sourceMapRoot[key];
@@ -187,9 +186,6 @@ namespace ClosureSourceMaps
             return (string) sourceMapRoot[key];
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="sourceMapRoot"></param>
         /// <param name="sectionSupplier"></param>
         private void parseMetaMap(JObject sourceMapRoot, ISourceMapSupplier sectionSupplier)
@@ -280,7 +276,7 @@ namespace ClosureSourceMaps
             }
         }
 
-        public override OriginalMapping getMappingForLine(int lineNumber, int column) 
+        public OriginalMapping GetMappingForLine(int lineNumber, int column) 
         {
             // Normalize the line and column numbers to 0.
             --lineNumber;
@@ -313,7 +309,7 @@ namespace ClosureSourceMaps
             return getOriginalMappingForEntry(entries[index]);
         }
 
-        public override List<string> OriginalSources 
+        public List<string> OriginalSources 
         {
             get
             {
@@ -321,7 +317,7 @@ namespace ClosureSourceMaps
             }
         }
 
-        public override List<OriginalMapping> getReverseMapping(string originalFile, int line, int column) 
+        public List<OriginalMapping> GetReverseMapping(string originalFile, int line, int column) 
         {
             // TODO(user): This implementation currently does not make use of the column
             // parameter.
@@ -375,7 +371,6 @@ namespace ClosureSourceMaps
             }
         }
 
-
         private String[] getStringArray(JArray array)
         {
             int len = array.Count;
@@ -389,7 +384,7 @@ namespace ClosureSourceMaps
 
         private class MappingBuilder 
         {
-            private static const int MAX_ENTRY_VALUES = 5;
+            private const int MAX_ENTRY_VALUES = 5;
             private readonly StringCharIterator content;
             private int line = 0;
             private int previousCol = 0;
@@ -409,7 +404,7 @@ namespace ClosureSourceMaps
             {
                 int [] temp = new int[MAX_ENTRY_VALUES];
                 List<IEntry> entries = new List<IEntry>();
-                while (content.hasNext()) 
+                while (content.HasNext()) 
                 {
                     // ';' denotes a new line.
                     if (tryConsumeToken(';')) 
@@ -531,10 +526,10 @@ namespace ClosureSourceMaps
 
             private bool tryConsumeToken(char token) 
             {
-                if (content.hasNext() && content.peek() == token) 
+                if (content.HasNext() && content.Current == token) 
                 {
                     // consume the comma
-                    content.next();
+                    content.Next();
                     return true;
                 }
                 return false;
@@ -542,12 +537,12 @@ namespace ClosureSourceMaps
 
             private bool entryComplete() 
             {
-                if (!content.hasNext()) 
+                if (!content.HasNext()) 
                 {
                     return true;
                 }
 
-                char c = content.peek();
+                char c = content.Current;
                 return (c == ';' || c == ',');
             }
 
@@ -717,7 +712,7 @@ namespace ClosureSourceMaps
         /// A implementation of the Base64VLQ CharIterator used for decoding the
         /// mappings encoded in the JSON string.
         /// </summary>
-        private class StringCharIterator: IEnumerable<char> 
+        private class StringCharIterator: IEnumerable<char>, IEnumerator<char>
         {
             readonly string content;
             readonly int length;
@@ -729,17 +724,47 @@ namespace ClosureSourceMaps
                 this.length = content.Length;
             }
 
-            public override char next() 
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return (IEnumerator)GetEnumerator();
+            }
+
+            public IEnumerator<char> GetEnumerator()
+            {
+                return this;
+            }
+
+            public bool MoveNext()
+            {
+                if (HasNext())
+                {
+                    ++current;
+                    return true;
+                }
+
+                Reset();
+                return false;             
+            }
+
+            public void Reset()
+            {
+                current = 0;
+            }
+
+            public char Current
+            {
+                get
+                {
+                    return content[current]; 
+                }
+            }
+
+            public char Next()
             {
                 return content[current++];
             }
 
-            public char peek() 
-            {
-                return content[current];
-            }
-
-            public override bool hasNext() 
+            public bool HasNext()
             {
                 return current < length;
             }
@@ -753,27 +778,22 @@ namespace ClosureSourceMaps
             int GeneratedColumn
             {
                 get;
-                set;
             }
             int SourceFileId
             {
                 get;
-                set;
             }
             int SourceLine
             {
                 get;
-                set;
             }
             int SourceColumn
             {
                 get;
-                set;
             }
             int NameId
             {
                 get;
-                set;
             }
         }
 
@@ -790,7 +810,7 @@ namespace ClosureSourceMaps
                 this.column = column;
             }
 
-            public override int GeneratedColumn 
+            public int GeneratedColumn 
             {
                 get
                 {
@@ -798,7 +818,7 @@ namespace ClosureSourceMaps
                 }
             }
 
-            public override int SourceFileId 
+            public int SourceFileId 
             {
                 get
                 {
@@ -806,7 +826,7 @@ namespace ClosureSourceMaps
                 }
             }
 
-            public override int SourceLine 
+            public int SourceLine 
             {
                 get
                 {
@@ -814,7 +834,7 @@ namespace ClosureSourceMaps
                 }
             }
 
-            public override int SourceColumn 
+            public int SourceColumn 
             {
                 get
                 {
@@ -822,7 +842,7 @@ namespace ClosureSourceMaps
                 }
             }
 
-            public override int NameId 
+            public int NameId 
             {
                 get
                 {
@@ -849,24 +869,36 @@ namespace ClosureSourceMaps
                 this.srcColumn = srcColumn;
             }
 
-            public override int getSourceFileId() 
+            public int SourceFileId 
             {
-                return srcFile;
+                get
+                {
+                    return srcFile;
+                }
             }
 
-            public override int getSourceLine() 
+            public int SourceLine 
             {
-                return srcLine;
+                get
+                {
+                    return srcLine;
+                }
             }
 
-            public override int getSourceColumn() 
+            public int SourceColumn 
             {
-                return srcColumn;
+                get
+                {
+                    return srcColumn;
+                }
             }
 
-            public override int getNameId() 
+            public int NameId 
             {
-                return Unmapped;
+                get
+                {
+                    return Unmapped;
+                }
             }
         }
 
@@ -885,22 +917,25 @@ namespace ClosureSourceMaps
                 this.name = name;
             }
 
-            public override int getNameId() 
+            public int NameId 
             {
-                return name;
+                get
+                {
+                    return name;
+                }
             }
         }
 
-        public static interface EntryVisitor 
+        public interface IEntryVisitor 
         {
-            void visit(String sourceName,
-                   String symbolName,
+            void Visit(string sourceName,
+                   string symbolName,
                    FilePosition sourceStartPosition,
                    FilePosition startPosition,
                    FilePosition endPosition);
         }
 
-        public void VisitMappings(EntryVisitor visitor) 
+        public void VisitMappings(IEntryVisitor visitor) 
         {
             bool pending = false;
             String sourceName = null;
@@ -922,7 +957,7 @@ namespace ClosureSourceMaps
                         {
                             FilePosition endPosition = new FilePosition(
                                 i, entry.GeneratedColumn);
-                            visitor.visit(
+                            visitor.Visit(
                                         sourceName,
                                         symbolName,
                                         sourceStartPosition,
@@ -944,6 +979,12 @@ namespace ClosureSourceMaps
                     }
                 }
             }
+        }
+
+
+        IEnumerable<OriginalMapping> ISourceMappingReversable.GetReverseMapping(string originalFile, int line, int column)
+        {
+            throw new NotImplementedException();
         }
     }
 }

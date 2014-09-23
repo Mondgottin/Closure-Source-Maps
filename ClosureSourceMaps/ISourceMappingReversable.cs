@@ -28,11 +28,6 @@ namespace ClosureSourceMaps
     interface ISourceMappingReversable : ISourceMapping
     {
         /// <summary>
-        /// </summary>
-        /// <returns>the collection of original sources in this source mapping</returns>
-        IEnumerable<string> GetOriginalSources();
-
-        /// <summary>
         /// Given a source file, line, and column, return the reverse mapping (source --> target).
         /// A collection is returned as in some cases (like a function being inlined), one source line
         /// may map to more then one target location. An empty collection is returned if there were

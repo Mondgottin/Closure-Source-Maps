@@ -31,7 +31,7 @@ namespace ClosureSourceMaps
     public class Base64Vlq
     {
          // Utility class.
-        private Base64Vlq() {}
+        public Base64Vlq() {}
 
         // A Base64 VLQ digit can represent 5 bits, so it is base-32.
         private const int vlqBaseShift = 5;

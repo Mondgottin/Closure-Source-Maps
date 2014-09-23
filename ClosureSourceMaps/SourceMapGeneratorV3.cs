@@ -133,10 +133,7 @@ namespace ClosureSourceMaps
         /// </summary>
         private string sourceRootPath;
 
-        /**
-        * {@inheritDoc}
-        */
-        public override void Reset()
+        public void Reset()
         {
             mappings.Clear();
             lastMapping = null;
@@ -151,7 +148,7 @@ namespace ClosureSourceMaps
         /// <summary></summary>
         /// <param name="validate">Whether to perform (potentially costly) validation on the
         /// generated source map</param>  
-        public override void Validate(bool validate) 
+        public void Validate(bool validate) 
         {
             // Nothing currently.
         }
@@ -162,7 +159,7 @@ namespace ClosureSourceMaps
         /// change in character offsets.
         /// </summary>
         /// <param name="prefix">The prefix that is added before the generated source code.</param>
-        public override void SetWrapperPrefix(string prefix)
+        public void SetWrapperPrefix(string prefix)
         {
             // Determine the current line and character position.
             int prefixLine = 0;
@@ -193,7 +190,7 @@ namespace ClosureSourceMaps
         /// </summary>
         /// <param name="offsetLine">The index of the current line being printed.</param>
         /// <param name="offsetIndex">The column index of the current character being printed.</param>
-        public override void SetStartingPosition(int offsetLine, int offsetIndex)
+        public void SetStartingPosition(int offsetLine, int offsetIndex)
         {
             Debug.Assert(offsetLine >= 0);
             Debug.Assert(offsetIndex >= 0);
@@ -206,7 +203,7 @@ namespace ClosureSourceMaps
         /// <param name="startPosition">The position on the starting line.</param>
         /// <param name="endPosition">The position on the ending line.</param>
 
-        public override void AddMapping(string sourceName, string? symbolName,
+        public void AddMapping(string sourceName, string symbolName,
                                         FilePosition sourceStartPosition, 
                                         FilePosition startPosition, FilePosition endPosition)
         {
@@ -250,7 +247,7 @@ namespace ClosureSourceMaps
             Mapping mapping = new Mapping();
             mapping.SourceFile = sourceName;
             mapping.OriginalPosition = sourceStartPosition;
-            mapping.OriginalName = symbolName.Value;
+            mapping.OriginalName = symbolName;
             mapping.StartPosition = adjustedStart;
             mapping.EndPosition = adjustedEnd;
 
@@ -272,12 +269,20 @@ namespace ClosureSourceMaps
             mappings.Add(mapping);
         }
 
-        class ConsumerEntryVisitor: SourceMapConsumerV3.EntryVisitor 
+        class ConsumerEntryVisitor: SourceMapConsumerV3.IEntryVisitor 
         {
-            public override void Visit(string sourceName, string symbolName, FilePosition sourceStartPosition,
+
+            private SourceMapGeneratorV3 parentGenerator;
+
+            public ConsumerEntryVisitor(SourceMapGeneratorV3 parentGenerator)
+            {
+                this.parentGenerator = parentGenerator;
+            }
+
+            public void Visit(string sourceName, string symbolName, FilePosition sourceStartPosition,
                                        FilePosition startPosition, FilePosition endPosition) 
             {
-                AddMapping(sourceName, symbolName, sourceStartPosition, startPosition, endPosition);
+                parentGenerator.AddMapping(sourceName, symbolName, sourceStartPosition, startPosition, endPosition);
             }
         }
 
@@ -294,7 +299,7 @@ namespace ClosureSourceMaps
             SetStartingPosition(line, column);
             SourceMapConsumerV3 section = new SourceMapConsumerV3();
             section.Parse(mapSectionContents);
-            section.VisitMappings(new ConsumerEntryVisitor());
+            section.VisitMappings(new ConsumerEntryVisitor(this));
         }
 
         /// <summary>
@@ -311,7 +316,7 @@ namespace ClosureSourceMaps
             SetStartingPosition(line, column);
             SourceMapConsumerV3 section = new SourceMapConsumerV3();
             section.Parse(mapSectionContents);
-            section.VisitMappings(new ConsumerEntryVisitor());
+            section.VisitMappings(new ConsumerEntryVisitor(this));
             foreach (KeyValuePair<string, object> kvp in section.Extensions)
             {
                 string extensionKey = kvp.Key;
@@ -357,7 +362,7 @@ namespace ClosureSourceMaps
         /// </summary>
         /// <param name="output"></param>
         /// <param name="name"></param>
-        public override void AppendTo(StringBuilder output, string name)
+        public void AppendTo(StringBuilder output, string name)
         {
             int maxLine = prepMappings();
 
@@ -634,7 +639,7 @@ namespace ClosureSourceMaps
         /// </summary>
         private class UsedMappingCheck: IMappingVisitor
         {
-            public override void Visit(Mapping m, int line, int col, int nextLine, int nextCol)
+            public void Visit(Mapping m, int line, int col, int nextLine, int nextCol)
             {
                 if (m != null)
                 {
@@ -800,7 +805,7 @@ namespace ClosureSourceMaps
         /// <param name="name">The name of the generated source file that this source map
         ///  represents.</param>
         /// <param name="sections">An ordered list of map sections to include in the index.</param>
-        public override void AppendIndexMapTo(StringBuilder output, string name, List<SourceMapSection> sections)
+        public void AppendIndexMapTo(StringBuilder output, string name, List<SourceMapSection> sections)
         {
             // Add the header fields.
             output.Append("{\n");
@@ -915,7 +920,7 @@ namespace ClosureSourceMaps
             /// <summary>
             /// As each segment is visited write out the appropriate line mapping.
             /// </summary>
-            public override void Visit(Mapping m, int line, int col, int nextLine, int nextCol)
+            public void Visit(Mapping m, int line, int col, int nextLine, int nextCol)
             {
                 if (previousLine != line)
                 {
