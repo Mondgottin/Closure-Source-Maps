@@ -43,6 +43,20 @@ namespace ClosureSourceMaps
             return escapeString(s, '"',  "\\\"", "\'", "\\\\", null);
         }
 
+        private static bool CanEncode(Encoding outputCharsetEncoder, char c)
+        {
+            try
+            {
+                outputCharsetEncoder.GetBytes(c.ToString());
+
+                return true;
+            }
+            catch (EncoderFallbackException e)
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// Helper to escape JavaScript string as well as regular expression.
         /// </summary>
@@ -118,7 +132,7 @@ namespace ClosureSourceMaps
                         //  character can be represented in this character set.
                         if (outputCharsetEncoder != null) 
                         {
-                            if (outputCharsetEncoder.canEncode(c)) 
+                            if (CanEncode(outputCharsetEncoder, c)) 
                             {
                                 sb.Append(c);
                             } 
@@ -145,6 +159,7 @@ namespace ClosureSourceMaps
                                 appendCharAsHex(sb, c);
                             }
                         }
+                        break;
                 }
             }
             sb.Append(quote);

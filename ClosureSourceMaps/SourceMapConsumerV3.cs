@@ -768,6 +768,19 @@ namespace ClosureSourceMaps
             {
                 return current < length;
             }
+
+            object IEnumerator.Current
+            {
+                get 
+                { 
+                    return content[current];  
+                }
+            }
+
+            public void Dispose()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         /// <summary>
