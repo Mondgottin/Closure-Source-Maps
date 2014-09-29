@@ -5,15 +5,72 @@
 * http://opensource.org/licenses/BSD-3-Clause
 */
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace ClosureSourceMaps.Tests
 {
+	using System.Linq;
 	using Microsoft.VisualStudio.TestTools.UnitTesting;
+	using Newtonsoft.Json.Linq;
 
 	[TestClass]
 	public class GeneratorTests
 	{
 		[TestMethod]
-		public void GeneratesCorrectMapping()
+		public void CorrectVersion()
+		{
+			JObject mapJson = GenerateTestMap();
+			Assert.AreEqual(3, mapJson.Value<int>("version"));
+		}
+
+		[TestMethod]
+		public void CorrectFile()
+		{
+			JObject mapJson = GenerateTestMap();
+			Assert.AreEqual("min.js", mapJson.Value<string>("file"));
+		}
+
+		[TestMethod]
+		public void CorrectNames()
+		{
+			JObject mapJson = GenerateTestMap();
+			var actual = mapJson.Values<string>("names").ToArray();
+			CollectionAssert.AreEquivalent(new[] { "bar", "baz", "n" }, actual);
+		}
+
+		[TestMethod]
+		public void CorrectSources()
+		{
+			JObject mapJson = GenerateTestMap();
+			var actual = mapJson.Values<string>("sources").ToArray();
+			CollectionAssert.AreEquivalent(new[] { "one.js", "two.js" }, actual);
+		}
+
+		[TestMethod]
+		public void CorrectSourceRoot()
+		{
+			JObject mapJson = GenerateTestMap();
+			Assert.AreEqual("/the/root", mapJson.Value<string>("sourceRoot"));
+		}
+
+		[TestMethod]
+		public void CorrectMappings()
+		{
+			JObject mapJson = GenerateTestMap();
+			Assert.AreEqual(
+				"CAAC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA",
+				mapJson.Value<string>("mappings")
+			);
+		}
+
+		[TestMethod]
+		public void CorrectMapping()
+		{
+			Assert.Inconclusive();
+			//map = JSON.parse(mapJson);
+			//util.assertEqualMaps(assert, map, util.testMap);
+		}
+
+		private static JObject GenerateTestMap()
 		{
 			var map = SourceMapGeneratorFactory.GetInstance();
 			map.AddMapping("one.js",
@@ -83,9 +140,8 @@ namespace ClosureSourceMaps.Tests
 			);
 
 			var mapJson = map.ToJsonString("min.js");
-			Assert.Inconclusive();
-            //map = JSON.parse(mapJson);
-            //util.assertEqualMaps(assert, map, util.testMap);
+
+			return JObject.Parse(mapJson);
 		}
 	}
 }

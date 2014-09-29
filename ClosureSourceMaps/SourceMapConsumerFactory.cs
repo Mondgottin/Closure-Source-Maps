@@ -64,7 +64,7 @@ namespace ClosureSourceMaps
                 try 
                 {
                     // Revision 2 and 3, are JSON Objects
-                    JObject sourceMapRoot = new JObject(contents);
+                    JObject sourceMapRoot = JObject.Parse(contents);
                     // Check basic assertions about the format.
                     Debug.Assert(sourceMapRoot["version"].GetType() == typeof(int));
                     int version = (int) sourceMapRoot["version"];
