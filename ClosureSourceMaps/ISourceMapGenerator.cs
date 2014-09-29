@@ -64,8 +64,10 @@ namespace ClosureSourceMaps
         /// range outputStartPosition to outputEndPosition in the generated file.</param>
         /// <param name="outputStartPosition">The position on the starting line.</param>
         /// <param name="outputEndPosition">The position on the ending line.</param>
-        void AddMapping(string sourceName, string symbolName, FilePosition sourceStartPosition,
-                        FilePosition outputStartPosition, FilePosition outputEndPosition);
+        void AddMapping(string sourceName, FilePosition sourceStartPosition,
+                FilePosition outputStartPosition,
+                FilePosition outputEndPosition = null,
+                string symbolName = null);
 
         /// <summary>
         /// Sets the prefix used for wrapping the generated source file before
@@ -85,6 +87,12 @@ namespace ClosureSourceMaps
         /// <param name="offsetLine">The index of the current line being printed.</param>
         /// <param name="offsetIndex">The column index of the current character being printed.</param>
         void SetStartingPosition(int offsetLine, int offsetIndex);
+
+        /// <summary>
+        /// Writes out the source map to JSON string
+        /// </summary>
+        /// <param name="compiledFileName">Name of the output compiled file</param>
+        string ToJsonString(string compiledFileName);
 
         /// <summary>
         /// Whether to perform additional validation on the source map.

@@ -18,36 +18,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Collections;
 using Newtonsoft.Json;
 using System.Diagnostics;
-using System.IO;
-
-using ProtoBuf;
-
-// import org.json.JSONArray;
-// import org.json.JSONException;
-// import org.json.JSONObject;
-
-// import java.io.IOException;
-// import java.util.ArrayList;
-// import java.util.Arrays;
-// import java.util.Collection;
-// import java.util.Collections;
-// import java.util.HashMap;
-// import java.util.Map;
 
 namespace ClosureSourceMaps
 {
-    // @author johnlenz@google.com (John Lenz)
-    /// <summary>
-    /// Class for parsing version 3 of the SourceMap format, as produced by the
-    /// Closure Compiler, etc.
-    /// http://code.google.com/p/closure-compiler/wiki/SourceMaps
-    /// </summary>
-    class SourceMapConsumerV3 : ISourceMapConsumer, ISourceMappingReversable
+	// @author johnlenz@google.com (John Lenz)
+	/// <summary>
+	/// Class for parsing version 3 of the SourceMap format, as produced by the
+	/// Closure Compiler, etc.
+	/// http://code.google.com/p/closure-compiler/wiki/SourceMaps
+	/// </summary>
+	class SourceMapConsumerV3 : ISourceMapConsumer, ISourceMappingReversable
     {
         public const int Unmapped = -1;
 
@@ -92,7 +76,7 @@ namespace ClosureSourceMaps
         {
             try 
             {
-                JObject sourceMapRoot = new JObject(contents);
+                JObject sourceMapRoot = JObject.Parse(contents);
                 Parse(sourceMapRoot, sectionSupplier);
             }
             catch (JsonException ex) 
@@ -309,11 +293,11 @@ namespace ClosureSourceMaps
             return getOriginalMappingForEntry(entries[index]);
         }
 
-        public List<string> OriginalSources 
+        public IEnumerable<string> OriginalSources 
         {
             get
             {
-                return sources.ToList<string>();
+                return (IEnumerable<string>)sources.Clone();
             }
         }
 
@@ -628,9 +612,9 @@ namespace ClosureSourceMaps
                 // Adjust the line/column here to be start at 1.
                 /*
                 Builder x = OriginalMapping.newBuilder()
-                .setOriginalFile(sources[entry.SourceFileId])
-                .setLineNumber(entry.SourceLine + 1)
-                .setColumnPosition(entry.SourceColumn + 1);
+                    .setOriginalFile(sources[entry.SourceFileId])
+                    .setLineNumber(entry.SourceLine + 1)
+                    .setColumnPosition(entry.SourceColumn + 1);
                  */
                 var x = new OriginalMapping
                 {
@@ -690,17 +674,14 @@ namespace ClosureSourceMaps
                             List<OriginalMapping> mappings =
                                 lineToCollectionMap[sourceLine];
 
-                            /*
-                            Builder builder = OriginalMapping.newBuilder().setLineNumber(
-                                targetLine).setColumnPosition(entry.GeneratedColumn);
-                            */
+
                             var mapping = new OriginalMapping
                             {
                                 line_number = targetLine,
                                 column_position = entry.GeneratedColumn
                             };
                             
-                            //mappings.Add(builder.build());
+
                             mappings.Add(mapping);
                         }
                     }
