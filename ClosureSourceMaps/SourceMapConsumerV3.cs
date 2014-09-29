@@ -309,11 +309,11 @@ namespace ClosureSourceMaps
             return getOriginalMappingForEntry(entries[index]);
         }
 
-        public List<string> OriginalSources 
+        public IEnumerable<string> OriginalSources 
         {
             get
             {
-                return sources.ToList<string>();
+                return (IEnumerable<string>)sources.Clone();
             }
         }
 
