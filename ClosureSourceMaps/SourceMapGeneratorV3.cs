@@ -14,24 +14,6 @@
  * limitations under the License.
  */
 
-// package com.google.debugging.sourcemap;
-// import com.google.common.base.Preconditions;
-// import com.google.common.collect.Lists;
-// import com.google.common.collect.Maps;
-// import com.google.debugging.sourcemap.SourceMapConsumerV3.EntryVisitor;
-
-// import org.json.JSONObject;
-
-// import java.io.IOException;
-// import java.util.ArrayDeque;
-// import java.util.Deque;
-// import java.util.LinkedHashMap;
-// import java.util.List;
-// import java.util.Map;
-// import java.util.Map.Entry;
-
-// import javax.annotation.Nullable;
-
 /**
  * Collects information mapping the generated (compiled) source back to
  * its original source for debugging purposes.
@@ -42,19 +24,14 @@
  * @author johnlenz@google.com (John Lenz)
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Diagnostics;
-using System.IO;
-
 namespace ClosureSourceMaps
 {
-    class SourceMapGeneratorV3 : ISourceMapGenerator
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using System.Diagnostics;
+
+    sealed class SourceMapGeneratorV3 : ISourceMapGenerator
     {
         /// <summary>
         /// This interface provides the merging strategy when an extension conflict
@@ -80,17 +57,17 @@ namespace ClosureSourceMaps
         /// <summary>
         /// A pre-order traversal ordered list of mappings stored in this map.
         /// </summary>
-        private List<Mapping> mappings = new List<Mapping>();
+        private readonly List<Mapping> mappings = new List<Mapping>();
 
         /// <summary>
         /// A map of source names to source name index.
         /// </summary>
-        private Dictionary<string, int> sourceFileMap = new Dictionary<string,int>();
+        private readonly Dictionary<string, int> sourceFileMap = new Dictionary<string,int>();
 
         /// <summary>
         /// A map of source names to source name index.
         /// </summary>
-        private Dictionary<string, int> originalNameMap = new Dictionary<string,int>();
+        private readonly Dictionary<string, int> originalNameMap = new Dictionary<string,int>();
 
         /// <summary>
         /// Cache of the last mappings source name.
@@ -200,12 +177,13 @@ namespace ClosureSourceMaps
         /// <summary>
         /// Adds a mapping for the given node.  Mappings must be added in order.
         /// </summary>
-        /// <param name="startPosition">The position on the starting line.</param>
-        /// <param name="endPosition">The position on the ending line.</param>
+        /// <param name="outputStartPosition">The position on the starting line.</param>
+        /// <param name="outputEndPosition">The position on the ending line.</param>
 
-        public void AddMapping(string sourceName, string symbolName,
-                                        FilePosition sourceStartPosition, 
-                                        FilePosition startPosition, FilePosition endPosition)
+        public void AddMapping(string sourceName, FilePosition sourceStartPosition,
+                        FilePosition outputStartPosition,
+                        FilePosition outputEndPosition = null,
+                        string symbolName = null)
         {
             // Don't bother if there is not sufficient information to be useful.
             if (sourceName == null || sourceStartPosition.Line < 0) 
@@ -213,8 +191,11 @@ namespace ClosureSourceMaps
                 return;
             }
 
-            FilePosition adjustedStart = startPosition;
-            FilePosition adjustedEnd = endPosition;
+			// TODO: check if it is correct to assume 1 symbol mapping?
+			outputEndPosition = outputEndPosition ?? outputStartPosition;
+
+            FilePosition adjustedStart = outputStartPosition;
+            FilePosition adjustedEnd = outputEndPosition;
 
             if (offsetPosition.Line != 0 || offsetPosition.Column != 0)
             {
@@ -226,21 +207,21 @@ namespace ClosureSourceMaps
                 int startOffsetPosition = offsetPosition.Column;
                 int endOffsetPosition = offsetPosition.Column;
 
-                if (startPosition.Line > 0) 
+                if (outputStartPosition.Line > 0) 
                 {
                     startOffsetPosition = 0;
                 }
 
-                if (endPosition.Line > 0)
+                if (outputEndPosition.Line > 0)
                 {
                     endOffsetPosition = 0;
                 }
 
-                adjustedStart = new FilePosition(startPosition.Line + offsetLine,
-                                                 startPosition.Column + startOffsetPosition);
+                adjustedStart = new FilePosition(outputStartPosition.Line + offsetLine,
+                                                 outputStartPosition.Column + startOffsetPosition);
 
-                adjustedEnd = new FilePosition(endPosition.Line + offsetLine,
-                                               endPosition.Column + endOffsetPosition);
+                adjustedEnd = new FilePosition(outputEndPosition.Line + offsetLine,
+                                               outputEndPosition.Column + endOffsetPosition);
             }
 
             // Create the new mapping.
@@ -282,7 +263,7 @@ namespace ClosureSourceMaps
             public void Visit(string sourceName, string symbolName, FilePosition sourceStartPosition,
                                        FilePosition startPosition, FilePosition endPosition) 
             {
-                parentGenerator.AddMapping(sourceName, symbolName, sourceStartPosition, startPosition, endPosition);
+                parentGenerator.AddMapping(sourceName, sourceStartPosition, startPosition, endPosition, symbolName);
             }
         }
 
@@ -361,7 +342,7 @@ namespace ClosureSourceMaps
         /// Line 9: Any custom field (extension).
         /// </summary>
         /// <param name="output"></param>
-        /// <param name="name"></param>
+        /// <param name="name">Compiled file name</param>
         public void AppendTo(StringBuilder output, string name)
         {
             int maxLine = prepMappings();
@@ -412,6 +393,17 @@ namespace ClosureSourceMaps
             }
 
             output.Append("\n}\n");
+        }
+
+        public string ToJsonString(string compiledFileName)
+        {
+            // TODO: migrate to code contracts
+            if (compiledFileName == null)
+                throw new ArgumentNullException("compiledFileName");
+
+            var result = new StringBuilder();
+            this.AppendTo(result, compiledFileName);
+            return result.ToString();
         }
 
         private StringBuilder quote(StringBuilder str)
@@ -697,7 +689,7 @@ namespace ClosureSourceMaps
 
                     // Any gaps between the current line position and the start of the
                     // current mapping belong to the parent.
-                    Mapping parent = stack.Peek();
+                    Mapping parent = stack.PeekOrNull();
                     maybeVisitParent(v, parent, m);
 
                     stack.Push(m);

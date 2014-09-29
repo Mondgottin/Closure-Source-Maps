@@ -35,7 +35,7 @@ namespace ClosureSourceMaps
     }
 
     // @author johnlenz@google.com (John Lenz)
-    public class SourceMapGeneratorFactory
+    public static class SourceMapGeneratorFactory
     {
         /// <summary></summary>
         /// <returns>The appropriate source map object for the given source map format.</returns>
