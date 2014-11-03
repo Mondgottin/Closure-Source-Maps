@@ -55,5 +55,10 @@ namespace ClosureSourceMaps
                 return column;
             }
         }
+
+        public static FilePosition operator +(FilePosition filePosition, int shift)
+        {
+            return new FilePosition(filePosition.Line, filePosition.Column + shift);
+        }
     }
 }

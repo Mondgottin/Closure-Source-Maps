@@ -55,7 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.6.0.4\lib\portable-net45+wp80+win8+wpa81\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.5\lib\portable-net45+wp80+win8+wpa81\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="protobuf-net">
       <HintPath>..\packages\protobuf-net.2.0.0.668\lib\portable-sl4+net40+wp7+windows8\protobuf-net.dll</HintPath>

@@ -248,6 +248,16 @@ namespace ClosureSourceMaps
 
             lastMapping = mapping;
             mappings.Add(mapping);
+
+            if (symbolName != null)
+            {
+                getNameId(symbolName);
+            }
+
+            if (sourceName != null)
+            {
+                getSourceId(sourceName);
+            }
         }
 
         class ConsumerEntryVisitor: SourceMapConsumerV3.IEntryVisitor 
@@ -857,12 +867,7 @@ namespace ClosureSourceMaps
             if (sourceName != lastSourceFile)
             {
                 lastSourceFile = sourceName;
-                int index = sourceFileMap[sourceName];
-                if (index != null)
-                {
-                    lastSourceFileIndex = index;
-                }
-                else
+                if (!sourceFileMap.TryGetValue(sourceName, out lastSourceFileIndex))
                 {
                     lastSourceFileIndex = sourceFileMap.Count;
                     sourceFileMap.Add(sourceName, lastSourceFileIndex);
@@ -874,12 +879,7 @@ namespace ClosureSourceMaps
         private int getNameId(string symbolName) 
         {
             int originalNameIndex;
-            int index = originalNameMap[symbolName];
-            if (index != null)
-            {
-                originalNameIndex = index;
-            } 
-            else 
+            if (!originalNameMap.TryGetValue(symbolName, out originalNameIndex))
             {
                 originalNameIndex = originalNameMap.Count;
                 originalNameMap.Add(symbolName, originalNameIndex);

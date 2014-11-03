@@ -33,7 +33,7 @@ namespace ClosureSourceMaps.Tests
 		public void CorrectNames()
 		{
 			JObject mapJson = GenerateTestMap();
-			var actual = mapJson.Values<string>("names").ToArray();
+            var actual = mapJson["names"].Values<string>().ToArray();
 			CollectionAssert.AreEquivalent(new[] { "bar", "baz", "n" }, actual);
 		}
 
@@ -41,7 +41,7 @@ namespace ClosureSourceMaps.Tests
 		public void CorrectSources()
 		{
 			JObject mapJson = GenerateTestMap();
-			var actual = mapJson.Values<string>("sources").ToArray();
+			var actual = mapJson["sources"].Values<string>().ToArray();
 			CollectionAssert.AreEquivalent(new[] { "one.js", "two.js" }, actual);
 		}
 
