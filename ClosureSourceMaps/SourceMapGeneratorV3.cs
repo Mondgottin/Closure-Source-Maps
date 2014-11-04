@@ -248,16 +248,6 @@ namespace ClosureSourceMaps
 
             lastMapping = mapping;
             mappings.Add(mapping);
-
-            if (symbolName != null)
-            {
-                getNameId(symbolName);
-            }
-
-            if (sourceName != null)
-            {
-                getSourceId(sourceName);
-            }
         }
 
         class ConsumerEntryVisitor: SourceMapConsumerV3.IEntryVisitor 
@@ -951,14 +941,13 @@ namespace ClosureSourceMaps
             /// </summary>
             void writeEntry(Mapping m, int column)
             {
-                SourceMapGeneratorV3 sourceMapGeneratorV3 = new SourceMapGeneratorV3();
                 // The relative generated column number
                 Base64Vlq.Encode(output, column - previousColumn);
                 previousColumn = column;
                 if (m != null) 
                 {
                     // The relative source file id
-                    int sourceId = sourceMapGeneratorV3.getSourceId(m.SourceFile);
+                    int sourceId = parentGenerator.getSourceId(m.SourceFile);
                     Base64Vlq.Encode(output, sourceId - previousSourceFileId);
                     previousSourceFileId = sourceId;
 
@@ -974,7 +963,7 @@ namespace ClosureSourceMaps
                     if (m.OriginalName != null) 
                     {
                         // The relative id for the associated symbol name
-                        int nameId = sourceMapGeneratorV3.getNameId(m.OriginalName);
+                        int nameId = parentGenerator.getNameId(m.OriginalName);
                         Base64Vlq.Encode(output, (nameId - previousNameId));
                         previousNameId = nameId;
                     }
