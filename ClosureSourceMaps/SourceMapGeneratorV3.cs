@@ -313,6 +313,7 @@ namespace ClosureSourceMaps
             }
         }     
 
+        #warning Remove `lineCount` and update the comments below!
         /// <summary>
         /// Writes out the source map in the following format (line numbers are for
         /// reference only and are not part of the format):
@@ -921,13 +922,8 @@ namespace ClosureSourceMaps
                     previousColumn = col;
                 }
 
-                for (int i = line; i <= nextLine; i++) 
+                for (int i = line; i < nextLine; i++) 
                 {
-                    if (i == nextLine) 
-                    {
-                        break;
-                    }
-
                     closeLine(false);
                     openLine(false);
                 }
@@ -998,10 +994,13 @@ namespace ClosureSourceMaps
             /// </summary>
             private void closeLine(bool finalEntry)
             {
-                output.Append(';');
                 if (finalEntry) 
                 {
                     output.Append('\"');
+                }
+                else
+                {
+                    output.Append(';');
                 }
             }
         }
