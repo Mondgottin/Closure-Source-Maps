@@ -59,7 +59,7 @@ namespace ClosureSourceMaps.Tests
 			JObject mapJson = GenerateTestMap();
             var result = mapJson["mappings"].Value<string>();
 			Assert.AreEqual(
-				"CAAC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA",
+				"A;CACC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA",
 				result
 			);
 		}
